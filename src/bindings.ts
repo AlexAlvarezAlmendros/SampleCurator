@@ -8,6 +8,37 @@ export type AudioInfo = { sampleRate: number, channels: number, bufferFrames: nu
 
 export type Destination = { id: number, projectId: number, name: string, relPath: string, hotkey: string | null, color: string, sortOrder: number, count: number, };
 
+/**
+ * Cuánto coincide la referencia barata (nombres) con la verdad del usuario, campo a campo.
+ * Es la medida que decide el gate de la Fase 8.
+ */
+export type FieldCoverage = { field: string, fromFilename: number, fromUser: number, 
+/**
+ * Etiquetados a mano que el nombre no supo describir: el material donde el clasificador
+ * tendrá que ganarse el sueldo de verdad.
+ */
+onlyUser: number, pairs: number, exact: number, close: number, wrong: number, accuracy: number, mirex: number, };
+
+/**
+ * Tonalidad: clase de altura (0 = Do) y modo.
+ */
+export type KeyLabel = { root: number, mode: KeyMode, };
+
+export type KeyMode = "major" | "minor";
+
+/**
+ * Resultado de pasar el extractor de nombres por toda la biblioteca.
+ */
+export type LabelReport = { processed: number, kind: number, bpm: number, key: number, pitch: number, millis: number, };
+
+/**
+ * De dónde sale una etiqueta. `Filename` es la referencia barata y masiva; `User` es la única
+ * verdad sin discusión.
+ */
+export type LabelSource = "filename" | "user" | "audio";
+
+export type LabelStats = { fields: Array<FieldCoverage>, labeledSamples: number, target: number, };
+
 export type LibraryPage = { rows: Array<SampleRow>, total: number, offset: number, };
 
 export type LibraryQuery = { sourceId: number | null, search: string | null, status: StatusFilter, sort: SortBy, 
@@ -33,6 +64,17 @@ startedAtMs: number, durationMs: number, startOffsetMs: number, looping: boolean
 export type Project = { id: number, name: string, destRoot: string, mode: TriageMode, createdAt: number, };
 
 export type SampleDetail = { row: SampleRow, absPath: string, loudnessDb: number | null, bitDepth: number | null, tags: Array<string>, };
+
+/**
+ * Taxonomía cerrada de tipos de sample. Cerrada a propósito: una lista abierta convierte el
+ * filtro en un cajón de sastre y hace imposible medir el acierto por clase.
+ */
+export type SampleKind = "kick" | "snare" | "clap" | "hat" | "cymbal" | "tom" | "perc" | "bass" | "synth" | "vocal" | "fx" | "loop" | "unknown";
+
+/**
+ * Etiquetas conocidas de un sample, con su procedencia.
+ */
+export type SampleLabels = { sampleId: number, kind: SampleKind | null, kindSource: LabelSource | null, bpm: number | null, bpmSource: LabelSource | null, key: string | null, keySource: LabelSource | null, };
 
 /**
  * Lo que la lista virtualizada necesita para pintar una fila. Nada más: cada campo de más

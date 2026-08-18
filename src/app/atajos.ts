@@ -1,3 +1,4 @@
+import { TECLAS_TIPO, useLabelsStore } from "../features/labels/store";
 /**
  * La tabla de atajos de SampleCurator. Es también la fuente de la pantalla de ayuda (`?`),
  * así que cada acción que exista aquí se ve documentada en la interfaz automáticamente.
@@ -17,7 +18,73 @@ function idEnFoco(): number | null {
   return filaEn(lib, lib.foco)?.id ?? null;
 }
 
+/**
+ * Atajos que siguen valiendo en modo etiquetado: moverse y escuchar. Etiquetar sin oír el
+ * sample no tendría ningún sentido.
+ */
+const COMPARTIDOS = [
+  "abajo",
+  "arriba",
+  "extender-abajo",
+  "extender-arriba",
+  "salto-abajo",
+  "salto-arriba",
+  "inicio",
+  "fin",
+  "repetir",
+  "bucle",
+  "atras",
+  "adelante",
+  "autoplay",
+  "ayuda",
+];
+
+/**
+ * La tabla depende del modo. Como `App` la pide en cada pulsación, cambiar de modo cambia el
+ * teclado entero sin tocar el listener — y la pantalla de ayuda, que se genera de aquí,
+ * muestra sola las teclas que valen ahora.
+ */
 export function construirAtajos(): Atajo[] {
+  const base = atajosTriaje();
+  if (!useLabelsStore.getState().modo) return base;
+  return [...base.filter((a) => COMPARTIDOS.includes(a.id)), ...atajosEtiquetado()];
+}
+
+function atajosEtiquetado(): Atajo[] {
+  const labels = () => useLabelsStore.getState();
+
+  const clases: Atajo[] = TECLAS_TIPO.map(([letra, valor, nombre]) => ({
+    id: `etiqueta-${valor}`,
+    etiqueta: letra.toUpperCase(),
+    descripcion: `Etiquetar como «${nombre}» y avanzar`,
+    grupo: "Etiquetado",
+    test: tecla(letra),
+    ejecutar: () => labels().ponerTipo(valor),
+  }));
+
+  return [
+    ...clases,
+    {
+      id: "salir-etiquetado",
+      etiqueta: "Esc",
+      descripcion: "Salir del modo etiquetado",
+      grupo: "Etiquetado",
+      enTexto: true,
+      test: tecla("escape"),
+      ejecutar: () => labels().alternarModo(),
+    },
+    {
+      id: "modo-etiquetado-off",
+      etiqueta: "⇧ L",
+      descripcion: "Salir del modo etiquetado",
+      grupo: "Etiquetado",
+      test: tecla("l", { shift: true }),
+      ejecutar: () => labels().alternarModo(),
+    },
+  ];
+}
+
+function atajosTriaje(): Atajo[] {
   const lib = () => useLibraryStore.getState();
   const player = () => usePlayerStore.getState();
   const triage = () => useTriageStore.getState();
@@ -27,18 +94,35 @@ export function construirAtajos(): Atajo[] {
     // ── navegación ─────────────────────────────────────────────
     {
       id: "abajo",
-      etiqueta: "↓ / J",
+      etiqueta: "↓",
       descripcion: "Siguiente sample (y suena)",
       grupo: "Navegación",
-      test: algunaTecla(["arrowdown", "j"]),
+      test: tecla("arrowdown"),
       ejecutar: () => lib().mover(1),
     },
     {
       id: "arriba",
-      etiqueta: "↑ / K",
+      etiqueta: "↑",
       descripcion: "Sample anterior (y suena)",
       grupo: "Navegación",
-      test: algunaTecla(["arrowup", "k"]),
+      test: tecla("arrowup"),
+      ejecutar: () => lib().mover(-1),
+    },
+    // Alias estilo vim. Van aparte porque en modo etiquetado la J y la K son otra cosa.
+    {
+      id: "abajo-vim",
+      etiqueta: "J",
+      descripcion: "Siguiente sample (alias)",
+      grupo: "Navegación",
+      test: tecla("j"),
+      ejecutar: () => lib().mover(1),
+    },
+    {
+      id: "arriba-vim",
+      etiqueta: "K",
+      descripcion: "Sample anterior (alias)",
+      grupo: "Navegación",
+      test: tecla("k"),
       ejecutar: () => lib().mover(-1),
     },
     {
@@ -348,11 +432,27 @@ export function construirAtajos(): Atajo[] {
       ejecutar: () => lib().setEstado(lib().estado === "duplicates" ? "all" : "duplicates"),
     },
     {
+      id: "modo-etiquetado",
+      etiqueta: "⇧ L",
+      descripcion: "Entrar en modo etiquetado (construye el conjunto de evaluación)",
+      grupo: "Biblioteca",
+      test: tecla("l", { shift: true }),
+      ejecutar: () => useLabelsStore.getState().alternarModo(),
+    },
+    {
       id: "ayuda",
       etiqueta: "?",
       descripcion: "Mostrar u ocultar esta ayuda",
       grupo: "Biblioteca",
-      test: algunaTecla(["?", "h"]),
+      test: tecla("?"),
+      ejecutar: () => ui().alternarAyuda(),
+    },
+    {
+      id: "ayuda-h",
+      etiqueta: "H",
+      descripcion: "Mostrar la ayuda (alias)",
+      grupo: "Biblioteca",
+      test: tecla("h"),
       ejecutar: () => ui().alternarAyuda(),
     },
   ];

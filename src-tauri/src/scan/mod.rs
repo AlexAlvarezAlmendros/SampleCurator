@@ -2,6 +2,7 @@
 //! comando IPC: quien llama recibe el progreso por un callback con throttle.
 
 pub mod analyzer;
+pub mod labeling;
 
 use crate::db::{queries, Db};
 use crate::domain::ScanProgress;

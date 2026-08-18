@@ -380,3 +380,260 @@ pub struct SessionProgress {
     #[ts(type = "number")]
     pub total: i64,
 }
+
+// ─────────────────────────── clasificación (Fase 8) ───────────────────────────
+
+/// Taxonomía cerrada de tipos de sample. Cerrada a propósito: una lista abierta convierte el
+/// filtro en un cajón de sastre y hace imposible medir el acierto por clase.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub enum SampleKind {
+    Kick,
+    Snare,
+    Clap,
+    Hat,
+    Cymbal,
+    Tom,
+    Perc,
+    Bass,
+    Synth,
+    Vocal,
+    Fx,
+    Loop,
+    Unknown,
+}
+
+impl SampleKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Kick => "kick",
+            Self::Snare => "snare",
+            Self::Clap => "clap",
+            Self::Hat => "hat",
+            Self::Cymbal => "cymbal",
+            Self::Tom => "tom",
+            Self::Perc => "perc",
+            Self::Bass => "bass",
+            Self::Synth => "synth",
+            Self::Vocal => "vocal",
+            Self::Fx => "fx",
+            Self::Loop => "loop",
+            Self::Unknown => "unknown",
+        }
+    }
+
+    pub fn parse(s: &str) -> Self {
+        match s {
+            "kick" => Self::Kick,
+            "snare" => Self::Snare,
+            "clap" => Self::Clap,
+            "hat" => Self::Hat,
+            "cymbal" => Self::Cymbal,
+            "tom" => Self::Tom,
+            "perc" => Self::Perc,
+            "bass" => Self::Bass,
+            "synth" => Self::Synth,
+            "vocal" => Self::Vocal,
+            "fx" => Self::Fx,
+            "loop" => Self::Loop,
+            _ => Self::Unknown,
+        }
+    }
+
+    /// ¿Puede este tipo tener altura definida? Un hi-hat no tiene nota, y decírselo al
+    /// estimador de tonalidad ahorra la mitad de los falsos positivos.
+    pub fn puede_ser_tonal(self) -> bool {
+        matches!(
+            self,
+            Self::Bass | Self::Synth | Self::Vocal | Self::Loop | Self::Fx | Self::Unknown
+        )
+    }
+
+    /// ¿Tiene sentido preguntarle el tempo? Solo lo que es un bucle.
+    pub fn puede_tener_bpm(self) -> bool {
+        matches!(self, Self::Loop | Self::Unknown)
+    }
+
+    pub const TODOS: [SampleKind; 13] = [
+        Self::Kick,
+        Self::Snare,
+        Self::Clap,
+        Self::Hat,
+        Self::Cymbal,
+        Self::Tom,
+        Self::Perc,
+        Self::Bass,
+        Self::Synth,
+        Self::Vocal,
+        Self::Fx,
+        Self::Loop,
+        Self::Unknown,
+    ];
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub enum KeyMode {
+    Major,
+    Minor,
+}
+
+/// Tonalidad: clase de altura (0 = Do) y modo.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct KeyLabel {
+    #[ts(type = "number")]
+    pub root: i64,
+    pub mode: KeyMode,
+}
+
+pub const NOTAS: [&str; 12] = [
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+];
+
+impl KeyLabel {
+    pub fn as_str(self) -> String {
+        let nota = NOTAS
+            .get(self.root.rem_euclid(12) as usize)
+            .copied()
+            .unwrap_or("C");
+        match self.mode {
+            KeyMode::Major => format!("{nota}:maj"),
+            KeyMode::Minor => format!("{nota}:min"),
+        }
+    }
+
+    pub fn parse(s: &str) -> Option<Self> {
+        let (nota, modo) = s.split_once(':')?;
+        let root = NOTAS.iter().position(|n| *n == nota)? as i64;
+        let mode = match modo {
+            "maj" => KeyMode::Major,
+            "min" => KeyMode::Minor,
+            _ => return None,
+        };
+        Some(Self { root, mode })
+    }
+
+    /// Relativo mayor/menor: Do mayor y La menor comparten notas, y confundirlos es el error
+    /// clásico de cualquier estimador. Se cuenta aparte en la evaluación.
+    pub fn es_relativo_de(self, otra: Self) -> bool {
+        match (self.mode, otra.mode) {
+            (KeyMode::Major, KeyMode::Minor) => (self.root - 3).rem_euclid(12) == otra.root,
+            (KeyMode::Minor, KeyMode::Major) => (self.root + 3).rem_euclid(12) == otra.root,
+            _ => false,
+        }
+    }
+
+    pub fn es_paralelo_de(self, otra: Self) -> bool {
+        self.root == otra.root && self.mode != otra.mode
+    }
+
+    pub fn es_quinta_de(self, otra: Self) -> bool {
+        self.mode == otra.mode
+            && ((self.root + 7).rem_euclid(12) == otra.root
+                || (self.root - 7).rem_euclid(12) == otra.root)
+    }
+}
+
+/// De dónde sale una etiqueta. `Filename` es la referencia barata y masiva; `User` es la única
+/// verdad sin discusión.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub enum LabelSource {
+    Filename,
+    User,
+    Audio,
+}
+
+impl LabelSource {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Filename => "filename",
+            Self::User => "user",
+            Self::Audio => "audio",
+        }
+    }
+    pub fn parse(s: &str) -> Self {
+        match s {
+            "user" => Self::User,
+            "audio" => Self::Audio,
+            _ => Self::Filename,
+        }
+    }
+}
+
+/// Etiquetas conocidas de un sample, con su procedencia.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct SampleLabels {
+    #[ts(type = "number")]
+    pub sample_id: i64,
+    pub kind: Option<SampleKind>,
+    pub kind_source: Option<LabelSource>,
+    pub bpm: Option<f64>,
+    pub bpm_source: Option<LabelSource>,
+    pub key: Option<String>,
+    pub key_source: Option<LabelSource>,
+}
+
+/// Resultado de pasar el extractor de nombres por toda la biblioteca.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct LabelReport {
+    #[ts(type = "number")]
+    pub processed: i64,
+    #[ts(type = "number")]
+    pub kind: i64,
+    #[ts(type = "number")]
+    pub bpm: i64,
+    #[ts(type = "number")]
+    pub key: i64,
+    #[ts(type = "number")]
+    pub pitch: i64,
+    #[ts(type = "number")]
+    pub millis: i64,
+}
+
+/// Cuánto coincide la referencia barata (nombres) con la verdad del usuario, campo a campo.
+/// Es la medida que decide el gate de la Fase 8.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct FieldCoverage {
+    pub field: String,
+    #[ts(type = "number")]
+    pub from_filename: i64,
+    #[ts(type = "number")]
+    pub from_user: i64,
+    /// Etiquetados a mano que el nombre no supo describir: el material donde el clasificador
+    /// tendrá que ganarse el sueldo de verdad.
+    #[ts(type = "number")]
+    pub only_user: i64,
+    #[ts(type = "number")]
+    pub pairs: i64,
+    #[ts(type = "number")]
+    pub exact: i64,
+    #[ts(type = "number")]
+    pub close: i64,
+    #[ts(type = "number")]
+    pub wrong: i64,
+    pub accuracy: f64,
+    pub mirex: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct LabelStats {
+    pub fields: Vec<FieldCoverage>,
+    #[ts(type = "number")]
+    pub labeled_samples: i64,
+    #[ts(type = "number")]
+    pub target: i64,
+}

@@ -1,6 +1,6 @@
 # Plan 08 — Clasificación automática: tipo, BPM y tonalidad
 
-> Fase: 8 de 8 | Estado: ⬜ Listo | Planificada: 2026-08-18
+> Fase: 8 de 8 | Estado: 🔄 En curso — la báscula está lista, faltan las 200 correcciones | Iniciada: 2026-08-18
 > Hito: que la lista diga `[kick 96%]`, `[loop 174 BPM]` y `[F min]` **y que esos números sean
 > ciertos**, medido contra material real etiquetado, no contra una impresión.
 
@@ -104,12 +104,12 @@ no se puede construir un clasificador en el que confiar.
 
 | # | Tarea | Estado | Notas |
 |---|-------|--------|-------|
-| 8.0.1 | `music/filename.rs`: extraer del nombre BPM, tonalidad y tipo (`KICK`, `128bpm`, `Cmin`, `Amaj`, `140`, `snr`, `oh`/`ch`…) con su confianza | ⬜ Listo | — |
-| 8.0.2 | Migración 002: tabla `labels` (sample_id, campo, valor, origen `filename`/`user`, fecha) | ⬜ Listo | — |
-| 8.0.3 | Poblar la referencia débil: pasar el extractor por la biblioteca entera y guardar lo que salga | ⬜ Listo | 8.0.1, 8.0.2 |
-| 8.0.4 | Interfaz mínima de corrección: en la fila enfocada, corregir tipo/BPM/tono y que quede como etiqueta `user` | ⬜ Listo | 8.0.2 |
-| 8.0.5 | Sesión de etiquetado: **~200 samples reales corregidos a mano** por el usuario, muestreados al azar y estratificados por tipo | ⬜ Listo | 8.0.4 |
-| 8.0.6 | `tests/evaluacion.rs`: informe de precisión por campo contra ambas referencias, con matriz de confusión por clase | ⬜ Listo | 8.0.3, 8.0.5 |
+| 8.0.1 | `music/filename.rs`: extraer del nombre BPM, tonalidad y tipo (`KICK`, `128bpm`, `Cmin`, `Amaj`, `140`, `snr`, `oh`/`ch`…) con su confianza | ✅ Hecho | `music/filename.rs`: tipo, BPM, tonalidad y altura, con 18 tests. La carpeta pesa más que el nombre; los índices (`01`) no son tempos y una nota suelta es altura, no tonalidad |
+| 8.0.2 | Migración 002: tabla `labels` (sample_id, campo, valor, origen `filename`/`user`, fecha) | ✅ Hecho | Migración 002: tabla `labels` con `UNIQUE(sample_id, field, source)`, así que reextraer actualiza en vez de duplicar |
+| 8.0.3 | Poblar la referencia débil: pasar el extractor por la biblioteca entera y guardar lo que salga | ✅ Hecho | 50.000 nombres leídos en **525 ms** (0,011 ms por archivo) |
+| 8.0.4 | Interfaz mínima de corrección: en la fila enfocada, corregir tipo/BPM/tono y que quede como etiqueta `user` | ✅ Hecho | **Modo etiquetado** (`⇧L`): misma ergonomía que el triaje —una letra por clase, con el sample sonando— y la medida del acuerdo a la vista mientras etiquetas |
+| 8.0.5 | Sesión de etiquetado: **~200 samples reales corregidos a mano** por el usuario, muestreados al azar y estratificados por tipo | ⏸️ Te toca | 8.0.4 |
+| 8.0.6 | `tests/evaluacion.rs`: informe de precisión por campo contra ambas referencias, con matriz de confusión por clase | ✅ Hecho | `tests/etiquetado.rs` + `music/evaluacion.rs`: 7 tests de integración y 7 de la comparación, que distingue exacto / cercano (octava, relativo, paralelo, quinta) / fallo |
 | 8.0.7 | **Medir cuánto mienten los nombres**: comparar referencia débil contra las 200 correcciones | ⬜ Listo | 8.0.6 |
 | 8.0.8 | **GO / NO-GO** y fijación de objetivos numéricos definitivos a la luz de 8.0.7 | ⬜ Listo | 8.0.7 |
 
@@ -252,3 +252,8 @@ de datos ya existe desde 8.0.5, que es justo el motivo de haberlo construido pri
 | Fecha | Tarea | Notas |
 |-------|-------|-------|
 | 2026-08-18 | — | Plan escrito. Alcance decidido: etiquetar y filtrar, sin mover nada. Validación por doble camino (nombres + 200 correcciones) |
+| 2026-08-18 | 8.0.1 | Extractor de nombres con 18 tests, incluidos los falsos positivos que más daño harían: «Ambient» no es la menor, «chord» no es un charles, «Fmaster» no es fa mayor |
+| 2026-08-18 | 8.0.2-8.0.3 | Tabla `labels` y referencia débil: 50.000 nombres en 525 ms |
+| 2026-08-18 | 8.0.4 | Modo etiquetado. Dos colisiones de teclas encontradas por los tests: `K` (bombo) chocaba con `K` (arriba, alias vim) y `H` (charles) con `H` (ayuda). Los alias se separaron |
+| 2026-08-18 | 8.0.4 | Bug encontrado por un test: una letra pulsada justo al entrar en el modo se perdía en silencio. Ahora la etiqueta se aplica siempre al sample enfocado |
+| 2026-08-18 | 8.0.6 | Arnés listo: la comparación distingue el error de octava y el relativo mayor/menor, que no son aciertos pero tampoco disparates |

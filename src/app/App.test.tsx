@@ -86,6 +86,44 @@ vi.mock("../lib/ipc", () => ({
   // El resto del contrato, en silencio: si un componente llama a algo que no está aquí,
   // el mock falla en voz alta y nos enteramos.
   settingsGet: vi.fn(async () => null),
+  extraerEtiquetas: vi.fn(async () => ({
+    processed: 3,
+    kind: 2,
+    bpm: 1,
+    key: 1,
+    pitch: 0,
+    millis: 12,
+  })),
+  estadisticasEtiquetas: vi.fn(async () => ({
+    fields: [
+      {
+        field: "kind",
+        fromFilename: 3,
+        fromUser: 1,
+        onlyUser: 0,
+        pairs: 1,
+        exact: 1,
+        close: 0,
+        wrong: 0,
+        accuracy: 1,
+        mirex: 1,
+      },
+    ],
+    labeledSamples: 1,
+    target: 200,
+  })),
+  etiquetasDe: vi.fn(async (id: number) => ({
+    sampleId: id,
+    kind: null,
+    kindSource: null,
+    bpm: null,
+    bpmSource: null,
+    key: null,
+    keySource: null,
+  })),
+  ponerEtiqueta: vi.fn(async () => {}),
+  quitarEtiqueta: vi.fn(async () => {}),
+  muestraParaEtiquetar: vi.fn(async () => [10]),
   settingsSet: vi.fn(async () => {}),
   renombrar: vi.fn(async (_id: number, n: string) => n),
   exportarDecisiones: vi.fn(async () => "/musica/libreria/library.json"),
@@ -111,6 +149,7 @@ vi.mock("../lib/ipc", () => ({
   bucle: vi.fn(async () => {}),
 }));
 
+import { useLabelsStore } from "../features/labels/store";
 import { useLibraryStore } from "../features/library/store";
 import * as ipc from "../lib/ipc";
 import { App } from "./App";
@@ -118,6 +157,9 @@ import { App } from "./App";
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Los stores de zustand viven en el módulo: sin reiniciarlos, un test hereda el modo
+    // que dejó encendido el anterior.
+    useLabelsStore.setState({ modo: false, etiquetas: null, stats: null, cola: [] });
     useLibraryStore.setState({
       fuentes: [],
       total: 0,
@@ -186,6 +228,32 @@ describe("App", () => {
     fireEvent.keyDown(window, { key: "t" });
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(ipc.settingsSet).toHaveBeenCalledWith("tema", "dark");
+  });
+
+  it("⇧L abre el modo etiquetado y cambia el teclado entero", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Destinos")).toBeDefined());
+
+    fireEvent.keyDown(window, { key: "L", shiftKey: true });
+    await waitFor(() => expect(screen.getByText("Etiquetado")).toBeDefined());
+    expect(screen.queryByText("Destinos")).toBeNull();
+
+    // La letra etiqueta en vez de hacer lo que hacía en el triaje.
+    await waitFor(() => expect(ipc.etiquetasDe).toHaveBeenCalled());
+    fireEvent.keyDown(window, { key: "k" });
+    await waitFor(() => expect(ipc.ponerEtiqueta).toHaveBeenCalledWith(10, "kind", "kick"));
+
+    // Y en modo etiquetado NO se dispara una decisión de triaje.
+    expect(ipc.enviar).not.toHaveBeenCalled();
+    expect(ipc.rechazar).not.toHaveBeenCalled();
+  });
+
+  it("Esc sale del modo etiquetado y devuelve los destinos", async () => {
+    render(<App />);
+    fireEvent.keyDown(window, { key: "L", shiftKey: true });
+    await waitFor(() => expect(screen.getByText("Etiquetado")).toBeDefined());
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.getByText("Destinos")).toBeDefined());
   });
 
   it("con la biblioteca vacía abre el asistente en vez de dejar una pantalla muerta", async () => {

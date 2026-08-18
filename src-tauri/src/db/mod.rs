@@ -4,6 +4,7 @@
 //! Mutex y un saco de conexiones de lectura. Con WAL, lecturas y escrituras no se bloquean,
 //! así que la lista sigue respondiendo mientras se indexa.
 
+pub mod labels;
 pub mod migrations;
 pub mod queries;
 pub mod triage;

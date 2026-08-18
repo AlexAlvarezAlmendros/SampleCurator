@@ -3,6 +3,7 @@
 //! Cada comando llama al módulo que corresponde (`db`, `scan`, `audio`, `fileops`) y devuelve
 //! `Result<T, AppError>`, que el frontend recibe como `{ kind, message }`.
 
+pub mod labels;
 pub mod library;
 pub mod player;
 pub mod settings;

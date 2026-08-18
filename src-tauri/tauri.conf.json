@@ -30,7 +30,14 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.png"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
     "category": "Music",
     "shortDescription": "Triaje r\u00e1pido de librer\u00edas de samples",
     "longDescription": "Recorre una carpeta de samples, esc\u00fachalos al instante y clasif\u00edcalos con una sola tecla.",

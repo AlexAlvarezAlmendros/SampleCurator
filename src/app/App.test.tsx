@@ -163,11 +163,11 @@ vi.mock("../lib/ipc", () => ({
   bucle: vi.fn(async () => {}),
 }));
 
-import { useUiStore } from "./uiStore";
 import { useLabelsStore } from "../features/labels/store";
 import { useLibraryStore } from "../features/library/store";
 import * as ipc from "../lib/ipc";
 import { App } from "./App";
+import { useUiStore } from "./uiStore";
 
 describe("App", () => {
   beforeEach(() => {
@@ -284,9 +284,7 @@ describe("App", () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText("samples")).toBeDefined());
     fireEvent.click(screen.getByLabelText("Reescanear /musica/samples"));
-    await waitFor(() =>
-      expect(ipc.reescanear).toHaveBeenCalledWith(1, expect.any(Function)),
-    );
+    await waitFor(() => expect(ipc.reescanear).toHaveBeenCalledWith(1, expect.any(Function)));
   });
 
   it("quitar una carpeta confirma en la propia fila, sin abrir un diálogo", async () => {

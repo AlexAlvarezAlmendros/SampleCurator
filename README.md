@@ -50,7 +50,9 @@ Esta app mueve y aparta archivos de tu librería personal, así que:
 
 ## Instalar
 
-Descarga el `.deb` o el `.AppImage` de la última release, o constrúyelos tú:
+Descarga el paquete de tu sistema de la última release, o constrúyelo tú.
+
+**Linux** (`.deb` y `.AppImage`):
 
 ```bash
 # Ubuntu 24.04
@@ -61,6 +63,22 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 pnpm install
 pnpm tauri build     # → src-tauri/target/release/bundle/{deb,appimage}/
 ```
+
+**Windows** (`.msi` y `.exe`):
+
+```powershell
+# Necesita Rust (rustup.rs), Node 22, pnpm 9 y las Build Tools de Visual Studio
+# con la carga de trabajo «Desarrollo para el escritorio con C++».
+# WebView2 ya viene con Windows 10 y 11; el instalador lo comprueba de todas formas.
+pnpm install
+pnpm tauri build     # → src-tauri\target\release\bundle\{msi,nsis}\
+```
+
+> **Estado de Windows:** el CI compila, pasa clippy y ejecuta los 110 tests del núcleo en
+> `windows-latest`, y construye los dos instaladores. Lo que **no** está verificado es la
+> ejecución real: nadie ha abierto todavía la app en Windows. La diferencia conocida es el
+> audio: WASAPI no deja fijar el tamaño de buffer, así que allí manda el del sistema (~10 ms
+> frente a los 2,6 ms medidos en Linux). Sigue siendo cómodamente imperceptible.
 
 ## Usar
 

@@ -375,14 +375,14 @@ fn aplicar_nombre(tx: &rusqlite::Transaction<'_>, sample_id: i64, ruta: &Path) -
         [sample_id],
         |r| r.get(0),
     )?;
-    match ruta.strip_prefix(&raiz) {
-        Ok(rel) => {
+    match crate::paths::relativa(Path::new(&raiz), ruta) {
+        Some(rel) => {
             tx.execute(
                 "UPDATE samples SET filename = ?2, rel_path = ?3, current_path = NULL WHERE id = ?1",
-                rusqlite::params![sample_id, filename, rel.to_string_lossy()],
+                rusqlite::params![sample_id, filename, rel],
             )?;
         }
-        Err(_) => {
+        None => {
             tx.execute(
                 "UPDATE samples SET filename = ?2, current_path = ?3 WHERE id = ?1",
                 rusqlite::params![sample_id, filename, ruta.to_string_lossy()],

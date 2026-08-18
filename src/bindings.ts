@@ -4,7 +4,12 @@ export type ActionKind = "move" | "copy" | "reject" | "rename" | "keep";
 
 export type AppInfo = { version: string, dbPath: string, audio: AudioInfo | null, audioError: string | null, };
 
-export type AudioInfo = { sampleRate: number, channels: number, bufferFrames: number, cacheBytes: number, cacheLimitBytes: number, cacheEntries: number, latencyP50Ms: number, latencyP95Ms: number, shots: number, };
+export type AudioInfo = { sampleRate: number, channels: number, bufferFrames: number, 
+/**
+ * `false` cuando el backend no deja elegir el tamaño de buffer (WASAPI en Windows):
+ * entonces manda el del sistema y `buffer_frames` vale 0.
+ */
+bufferFixed: boolean, cacheBytes: number, cacheLimitBytes: number, cacheEntries: number, latencyP50Ms: number, latencyP95Ms: number, shots: number, };
 
 export type Destination = { id: number, projectId: number, name: string, relPath: string, hotkey: string | null, color: string, sortOrder: number, count: number, };
 

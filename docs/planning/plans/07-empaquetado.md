@@ -24,7 +24,7 @@
 | 7.6 | Primer arranque: crear rutas de datos, migrar y no fallar nunca en frío | ✅ Hecho | Verificado con la base borrada: crea, migra y arranca sin datos |
 | 7.7 | GitHub Actions: `clippy`, `cargo test`, `biome`, `typecheck`, `vitest` y build | ✅ Hecho | 3 jobs: frontend, núcleo Rust y paquetes. Incluye comprobar que bindings.ts está al día |
 | 7.8 | README con capturas reales y guía de instalación | ✅ Hecho | README con números medidos, garantías sobre los archivos y guía de uso. Capturas pendientes |
-| 7.9 | (Opcional) build de Windows y macOS en la matriz de CI | 🔒 | 7.7 |
+| 7.9 | Build de Windows en la matriz de CI | 🔄 En curso | Compila, pasa clippy y los 110 tests en `windows-latest`, y construye `.msi` y `.exe`. macOS sigue fuera: no hay quien lo verifique |
 
 ---
 
@@ -57,6 +57,16 @@ inventar: un **par de claves de firma** (la privada no debe salir de tus manos n
 repositorio) y un **endpoint de releases** al que apuntar. Cuando decidas si esto se publica en
 GitHub Releases y generes las claves con `pnpm tauri signer generate`, conectarlo es media hora.
 
-**7.9 · Matriz Windows y macOS.** El CI puede compilar en las tres plataformas cambiando una
-línea, pero no puedo *probar* que la app funcione en ellas desde aquí. Se añade cuando haya
-alguien que pueda verificar el resultado, no antes.
+**7.9 · Windows: compilado y empaquetado, pero sin ejecutar.** El CI compila el núcleo, pasa
+clippy, ejecuta los 110 tests y construye el `.msi` y el `.exe` en `windows-latest`. Eso cubre
+la portabilidad del código —rutas, renombrados, prioridades de hilo— pero **nadie ha abierto
+todavía la app en Windows**. Lo que hay que comprobar cuando alguien pueda:
+
+1. Que suena, y con qué latencia (WASAPI no deja fijar el buffer; se espera ~10 ms frente a los
+   2,6 ms de Linux).
+2. Que el triaje mueve archivos correctamente entre unidades distintas (`C:` → `D:`), que es
+   donde entra la ruta de copiar-verificar-borrar.
+3. Que los acentos y los espacios en las rutas sobreviven al viaje completo.
+
+**macOS** sigue fuera por el mismo motivo, agravado: además de no poder verificarlo, la
+distribución exige firma y notarización con una cuenta de desarrollador de Apple.

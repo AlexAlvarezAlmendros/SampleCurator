@@ -17,6 +17,7 @@ pub mod error;
 pub mod fileops;
 pub mod ipc;
 pub mod music;
+pub mod paths;
 pub mod scan;
 
 use std::sync::atomic::AtomicBool;

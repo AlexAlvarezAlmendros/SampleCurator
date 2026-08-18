@@ -15,8 +15,8 @@ const LOTE: i64 = 256;
 /// Pool propio para el análisis, con DOS medidas para no robarle CPU al hilo de audio:
 ///
 ///   1. deja dos núcleos libres (uno para el audio, otro para la interfaz)
-///   2. baja la prioridad de sus hilos con `nice(+10)`, así el hilo de audio siempre
-///      les gana el turno
+///   2. baja la prioridad de sus hilos (`nice(+10)` en Unix, `BELOW_NORMAL` en Windows), así
+///      el hilo de audio siempre les gana el turno
 ///
 /// Sin esto se midió un *underrun* del stream analizando 50.000 samples de golpe: el motor
 /// de audio quedaba a la cola detrás de 16 hilos de rayon del mismo proceso. Y sobra margen
@@ -31,17 +31,30 @@ fn pool() -> Option<&'static rayon::ThreadPool> {
         rayon::ThreadPoolBuilder::new()
             .num_threads(hilos)
             .thread_name(|i| format!("analisis-{i}"))
-            .start_handler(|_| {
-                // Solo afecta al hilo que la llama, que es justo lo que queremos.
-                #[cfg(unix)]
-                unsafe {
-                    libc::nice(10);
-                }
-            })
+            .start_handler(|_| bajar_prioridad())
             .build()
             .ok()
     })
     .as_ref()
+}
+
+/// Baja la prioridad del hilo que la llama, para que el de audio le gane siempre el turno.
+///
+/// Cada sistema lo dice a su manera, pero es la misma idea: el análisis puede esperar, el
+/// audio no. Sin esto se midió un *underrun* del stream analizando 50.000 samples de golpe.
+fn bajar_prioridad() {
+    #[cfg(unix)]
+    unsafe {
+        // Solo afecta al hilo que la llama, que es justo lo que queremos.
+        libc::nice(10);
+    }
+    #[cfg(windows)]
+    unsafe {
+        use windows_sys::Win32::System::Threading::{
+            GetCurrentThread, SetThreadPriority, THREAD_PRIORITY_BELOW_NORMAL,
+        };
+        SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+    }
 }
 
 fn en_paralelo<T: Send>(f: impl FnOnce() -> T + Send) -> T {

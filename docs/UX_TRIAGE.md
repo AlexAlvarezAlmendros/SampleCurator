@@ -99,6 +99,7 @@ retoma en el mismo sample donde lo dejaste.
 | `Ctrl+R` | Revelar en el explorador de archivos |
 | `Ctrl+E` | Guardar las decisiones en `<destino>/library.json` |
 | `T` | Cambiar entre tema oscuro y claro |
+| `Ctrl+,` | Ajustes: carpetas, apariencia, escucha, papelera e información |
 | `?` | Ver el mapa de teclas completo |
 
 El mapa vive en un único sitio declarativo (`src/app/atajos.ts`), y la pantalla de ayuda (`?`)
@@ -134,6 +135,24 @@ la fila muestra un chip `dup` en `--warn-9` y `⇧D` filtra solo esos. Nunca se 
 automáticamente.
 
 ---
+
+## 4.bis Las carpetas, sobre la marcha
+
+La barra lateral no es solo una lista: cada carpeta lleva sus acciones, que aparecen al pasar
+por encima.
+
+| Acción | Dónde | Qué hace |
+|---|---|---|
+| **+** | Cabecera de «Carpetas» | Añade otra carpeta de samples sin pasar por el asistente |
+| **↻** | En la fila de la carpeta | Vuelve a recorrerla: entra lo nuevo, se actualiza lo que cambió y se poda lo que ya no está en disco |
+| **×** | En la fila de la carpeta | La quita del índice. **No borra ningún archivo** |
+
+Quitar una carpeta pregunta **en la propia fila** («¿Quitar del índice? Sí / No»), no en un
+diálogo: el flujo de esta app no abre modales. Lo que sí conviene saber es que se pierden las
+decisiones tomadas sobre esos samples, porque el índice es donde viven.
+
+Reescanear respeta el triaje: lo que hayas movido a un destino sigue donde lo pusiste y no
+reaparece como pendiente.
 
 ## 5. Estados vacíos y errores
 

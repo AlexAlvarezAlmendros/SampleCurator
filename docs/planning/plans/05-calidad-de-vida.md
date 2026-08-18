@@ -45,12 +45,22 @@ sus objetivos de acierto numéricos y su conjunto de evaluación.
 | 5.14 | Comparación A/B entre dos samples con `Ctrl+B` | 🔒 | 3.11 |
 | 5.15 | `Ctrl+R`: revelar en el explorador de archivos del sistema | ✅ Hecho | Ctrl+R vía tauri-plugin-opener |
 
+### Gestión de carpetas y ajustes (petición del usuario, 2026-08-18)
+
+| # | Tarea | Estado | Notas |
+|---|-------|--------|-------|
+| 5.20 | Añadir carpeta de origen desde la barra lateral, sin pasar por el asistente | ✅ Hecho | Botón + en la cabecera de «Carpetas» y en los ajustes; abre el diálogo nativo |
+| 5.21 | Reescanear una carpeta ya añadida (detecta lo nuevo y poda lo que ya no está) | ✅ Hecho | ↻ en cada carpeta. El comando existía desde la Fase 2 y estaba huérfano: nada lo llamaba |
+| 5.22 | Quitar una carpeta del índice, avisando de que los archivos no se tocan | ✅ Hecho | × con confirmación EN LA PROPIA FILA, sin modal. Avisa de que no se borra nada del disco |
+| 5.23 | Panel de ajustes (`Ctrl+,`): carpetas, apariencia, escucha, papelera e información | ✅ Hecho | `Ctrl+,`: carpetas, apariencia, escucha, papelera e información (incluida la latencia real medida por el motor) |
+| 5.24 | Densidad de fila configurable (compacta / normal / cómoda) | ✅ Hecho | Compacta 24 px · normal 28 · cómoda 34. Vive en el estado, no en el CSS: el virtualizador necesita el número exacto |
+
 ### Personalización
 | # | Tarea | Estado | Notas |
 |---|-------|--------|-------|
 | 5.16 | Atajos reconfigurables sobre el mapa declarativo, con detección de conflictos | 🔒 | 1.16 |
 | 5.17 | Preset "una sola mano" (`Q W E A S D Z X C`) | 🔒 | 5.16 |
-| 5.18 | Ajustes: densidad de fila, tamaño de caché, autoplay, normalización | 🔒 | 1.14 |
+| 5.18 | Ajustes: densidad de fila, tamaño de caché, autoplay, normalización | ➡️ Movida | Se concreta en 5.23 y 5.24 |
 | 5.19 | Exportar/importar `library.json` con las decisiones del usuario | ✅ Hecho | Ctrl+E y volcado automático al cerrar; escritura atómica. Importar, pendiente |
 
 ---
@@ -74,6 +84,7 @@ se ordenan por BPM y cada mano tiene sus teclas.
 |-------|-------|-------|
 | 2026-08-18 | 5.1, 5.5, 5.11, 5.15, 5.19 | Duplicados, ordenaciones, renombrado, revelar y copia de decisiones |
 | 2026-08-18 | 5.2–5.4 | Filtros de duración y valoración; el resto queda apuntado |
+| 2026-08-18 | 5.20–5.24 | Gestión de carpetas y panel de ajustes, a petición del usuario tras usar la app de verdad. `library_rescan` y `library_remove_source` llevaban desde la Fase 2 implementados y sin conectar a nada |
 
 
 ---

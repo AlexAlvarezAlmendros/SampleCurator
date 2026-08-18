@@ -6,6 +6,7 @@ import { Sidebar } from "../features/library/components/Sidebar";
 import { consultaActual, useLibraryStore } from "../features/library/store";
 import { Transport } from "../features/player/components/Transport";
 import { HelpOverlay } from "../features/settings/components/HelpOverlay";
+import { SettingsPanel } from "../features/settings/components/SettingsPanel";
 import { DestinationsPanel } from "../features/triage/components/DestinationsPanel";
 import { useTriageStore } from "../features/triage/store";
 import * as ipc from "../lib/ipc";
@@ -21,6 +22,7 @@ import { useUiStore } from "./uiStore";
 export function App() {
   const ayudaAbierta = useUiStore((s) => s.ayudaAbierta);
   const modoEtiquetado = useLabelsStore((s) => s.modo);
+  const ajustesAbiertos = useUiStore((s) => s.ajustesAbiertos);
   const asistenteAbierto = useUiStore((s) => s.asistenteAbierto);
 
   // ── arranque ────────────────────────────────────────────────
@@ -50,6 +52,10 @@ export function App() {
       // El tema se restaura antes de nada para que no haya un parpadeo de oscuro a claro.
       const tema = await ipc.settingsGet("tema").catch(() => null);
       if (tema === "light" || tema === "dark") useUiStore.getState().aplicarTema(tema);
+      const densidad = await ipc.settingsGet("densidad").catch(() => null);
+      if (densidad === "compacta" || densidad === "normal" || densidad === "comoda") {
+        useUiStore.getState().aplicarDensidad(densidad);
+      }
 
       const info = await ipc.appInfo().catch(() => null);
       if (info?.audioError) {
@@ -70,7 +76,7 @@ export function App() {
       const todos = construirAtajos();
       // Con un panel abierto solo quedan vivos Esc y la ayuda: nada de disparar decisiones
       // de triaje contra una lista que no se está viendo.
-      if (ui.asistenteAbierto || ui.ayudaAbierta) {
+      if (ui.asistenteAbierto || ui.ayudaAbierta || ui.ajustesAbiertos) {
         return todos.filter((a) => a.id === "escape" || a.id === "ayuda");
       }
       return todos;
@@ -136,6 +142,7 @@ export function App() {
       <Transport />
       <StatusBar />
       {ayudaAbierta && <HelpOverlay />}
+      {ajustesAbiertos && <SettingsPanel />}
       {asistenteAbierto && <SetupWizard />}
       <AutoPlay />
     </div>

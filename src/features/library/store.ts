@@ -39,6 +39,10 @@ interface LibraryState {
   stats: LibraryStats | null;
 
   cargarFuentes: () => Promise<void>;
+  anadirCarpeta: () => Promise<void>;
+  reescanearFuente: (id: number) => Promise<void>;
+  quitarFuenteDelIndice: (id: number) => Promise<void>;
+  escaneando: number | null;
   setFuente: (id: number | null) => Promise<void>;
   setBusqueda: (q: string) => Promise<void>;
   setEstado: (e: StatusFilter) => Promise<void>;
@@ -113,6 +117,53 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   progreso: null,
   stats: null,
+  escaneando: null,
+
+  /** Abre el diálogo nativo, añade la carpeta y deja la lista lista para usar. */
+  async anadirCarpeta() {
+    const ruta = await ipc.elegirCarpeta("Elige una carpeta con samples");
+    if (!ruta) return;
+    set({ escaneando: -1 });
+    try {
+      await ipc.anadirFuente(ruta, (p) => set({ progreso: p }));
+      await get().cargarFuentes();
+      await get().refrescar();
+    } catch (e) {
+      log.error("no se pudo añadir la carpeta", e);
+    } finally {
+      set({ escaneando: null });
+    }
+  },
+
+  /**
+   * Vuelve a recorrer una carpeta ya añadida: entra lo nuevo, se actualiza lo que cambió y
+   * se poda lo que ya no está en disco. Lo que hayas movido con el triaje NO se toca.
+   */
+  async reescanearFuente(id) {
+    set({ escaneando: id });
+    try {
+      await ipc.reescanear(id, (p) => set({ progreso: p }));
+      await get().cargarFuentes();
+      await get().refrescar(true);
+    } catch (e) {
+      log.error("no se pudo reescanear", e);
+    } finally {
+      set({ escaneando: null });
+    }
+  },
+
+  /** Quita la carpeta del ÍNDICE. Los archivos del disco no se tocan. */
+  async quitarFuenteDelIndice(id) {
+    try {
+      await ipc.quitarFuente(id);
+      const quedaba = get().fuenteActiva === id;
+      await get().cargarFuentes();
+      if (quedaba) set({ fuenteActiva: get().fuentes[0]?.id ?? null });
+      await get().refrescar();
+    } catch (e) {
+      log.error("no se pudo quitar la carpeta", e);
+    }
+  },
 
   async cargarFuentes() {
     try {

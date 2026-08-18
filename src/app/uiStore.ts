@@ -10,6 +10,18 @@ export interface Aviso {
 }
 
 export type Tema = "dark" | "light";
+export type Densidad = "compacta" | "normal" | "comoda";
+
+/**
+ * Alto de fila en píxeles. El token CSS define el valor por defecto; esto es la preferencia
+ * del usuario, que manda sobre él. Vive en JS porque el virtualizador necesita el número
+ * exacto: si lo leyera del CSS y el CSS cambiara, la lista mediría mal.
+ */
+export const ALTURA_FILA: Record<Densidad, number> = {
+  compacta: 24,
+  normal: 28,
+  comoda: 34,
+};
 
 interface UiState {
   aviso: Aviso | null;
@@ -18,6 +30,8 @@ interface UiState {
   asistenteAbierto: boolean;
   renombrando: boolean;
   tema: Tema;
+  densidad: Densidad;
+  ajustesAbiertos: boolean;
   avisar: (tipo: TipoAviso, texto: string) => void;
   limpiarAviso: () => void;
   alternarAyuda: () => void;
@@ -26,6 +40,8 @@ interface UiState {
   setRenombrando: (v: boolean) => void;
   alternarTema: () => void;
   aplicarTema: (t: Tema) => void;
+  aplicarDensidad: (d: Densidad) => void;
+  setAjustes: (v: boolean) => void;
 }
 
 let contador = 0;
@@ -37,6 +53,8 @@ export const useUiStore = create<UiState>((set, get) => ({
   asistenteAbierto: false,
   renombrando: false,
   tema: "dark",
+  densidad: "normal",
+  ajustesAbiertos: false,
   avisar: (tipo, texto) => set({ aviso: { tipo, texto, n: ++contador } }),
   limpiarAviso: () => set({ aviso: null }),
   alternarAyuda: () => set((s) => ({ ayudaAbierta: !s.ayudaAbierta })),
@@ -52,4 +70,10 @@ export const useUiStore = create<UiState>((set, get) => ({
     document.documentElement.dataset.theme = tema;
     set({ tema });
   },
+  aplicarDensidad: (densidad) => {
+    // El token CSS define el valor por defecto; esta es la preferencia del usuario, que manda.
+    document.documentElement.style.setProperty("--row-height", `${ALTURA_FILA[densidad]}px`);
+    set({ densidad });
+  },
+  setAjustes: (v) => set({ ajustesAbiertos: v }),
 }));

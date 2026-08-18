@@ -61,9 +61,22 @@ La app medida, no supuesta: una tabla con los números reales y todos dentro de 
 | 2026-08-18 | 6.7 | 82 ms → 16 ms por página añadiendo índices con la colación correcta |
 | 2026-08-18 | 6.x | **Underrun de audio encontrado y corregido**: el analizador competía con el hilo de audio dentro del proceso. Pool propio con dos núcleos libres y nice(+10) → 0 underruns en 3 vueltas |
 | 2026-08-18 | 6.8–6.13 | Perfil de release, tema claro, accesibilidad, estados y ayuda |
+| 2026-08-18 | 6.9 | **Recorte del transporte** encontrado por el usuario en una captura: alto fijo + controles que se envuelven. Pasa a `min-height` y la columna se ensancha |
 
 
 ---
+
+## Bug encontrado en uso real (2026-08-18)
+
+**El transporte se recortaba por abajo.** Con la ventana a 1362 px, los tres interruptores
+(bucle / autoplay / volumen) no caben en la columna de 280 px, se envuelven a una segunda línea
+y el contenido se sale de los 88 px de alto fijo. La captura del usuario lo enseñaba: «vol 90 %»
+cortado por la mitad.
+
+La causa no es el ancho concreto, es el patrón: **alto fijo + contenido variable = recorte**, y
+basta con una traducción más larga o una fuente distinta para que vuelva. El alto pasa a ser
+`min-height` —así no puede recortar nunca— y la columna se ensancha para que en el caso normal
+no llegue a envolverse.
 
 ## Aplazado con criterio
 

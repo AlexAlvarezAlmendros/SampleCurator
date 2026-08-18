@@ -86,6 +86,20 @@ vi.mock("../lib/ipc", () => ({
   // El resto del contrato, en silencio: si un componente llama a algo que no está aquí,
   // el mock falla en voz alta y nos enteramos.
   settingsGet: vi.fn(async () => null),
+  reescanear: vi.fn(async () => {}),
+  quitarFuente: vi.fn(async () => {}),
+  infoAudio: vi.fn(async () => ({
+    sampleRate: 44100,
+    channels: 2,
+    bufferFrames: 256,
+    bufferFixed: true,
+    cacheBytes: 1048576,
+    cacheLimitBytes: 268435456,
+    cacheEntries: 4,
+    latencyP50Ms: 1.4,
+    latencyP95Ms: 2.6,
+    shots: 120,
+  })),
   extraerEtiquetas: vi.fn(async () => ({
     processed: 3,
     kind: 2,
@@ -149,6 +163,7 @@ vi.mock("../lib/ipc", () => ({
   bucle: vi.fn(async () => {}),
 }));
 
+import { useUiStore } from "./uiStore";
 import { useLabelsStore } from "../features/labels/store";
 import { useLibraryStore } from "../features/library/store";
 import * as ipc from "../lib/ipc";
@@ -160,6 +175,8 @@ describe("App", () => {
     // Los stores de zustand viven en el módulo: sin reiniciarlos, un test hereda el modo
     // que dejó encendido el anterior.
     useLabelsStore.setState({ modo: false, etiquetas: null, stats: null, cola: [] });
+    useUiStore.setState({ ajustesAbiertos: false, ayudaAbierta: false, densidad: "normal" });
+    document.documentElement.style.removeProperty("--row-height");
     useLibraryStore.setState({
       fuentes: [],
       total: 0,
@@ -254,6 +271,73 @@ describe("App", () => {
     await waitFor(() => expect(screen.getByText("Etiquetado")).toBeDefined());
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() => expect(screen.getByText("Destinos")).toBeDefined());
+  });
+
+  it("desde la barra lateral se puede añadir otra carpeta", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Carpetas")).toBeDefined());
+    fireEvent.click(screen.getByLabelText("Añadir carpeta"));
+    await waitFor(() => expect(ipc.elegirCarpeta).toHaveBeenCalled());
+  });
+
+  it("reescanear una carpeta llama al backend con su id", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("samples")).toBeDefined());
+    fireEvent.click(screen.getByLabelText("Reescanear /musica/samples"));
+    await waitFor(() =>
+      expect(ipc.reescanear).toHaveBeenCalledWith(1, expect.any(Function)),
+    );
+  });
+
+  it("quitar una carpeta confirma en la propia fila, sin abrir un diálogo", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("samples")).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText("Quitar /musica/samples"));
+    expect(screen.getByText("¿Quitar del índice?")).toBeDefined();
+    expect(ipc.quitarFuente).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText("No"));
+    expect(screen.queryByText("¿Quitar del índice?")).toBeNull();
+    expect(ipc.quitarFuente).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("Quitar /musica/samples"));
+    fireEvent.click(screen.getByText("Sí"));
+    await waitFor(() => expect(ipc.quitarFuente).toHaveBeenCalledWith(1));
+  });
+
+  it("Ctrl+, abre los ajustes y Esc los cierra", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Carpetas")).toBeDefined());
+
+    // Por el rol, no por el texto: «Ajustes» aparece dos veces (el botón de la barra
+    // lateral y el título del panel).
+    fireEvent.keyDown(window, { key: ",", ctrlKey: true });
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Ajustes" })).toBeDefined());
+    expect(screen.getByText("Carpetas de samples")).toBeDefined();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByText("Carpetas de samples")).toBeNull());
+  });
+
+  it("la densidad cambia el alto de fila de verdad", async () => {
+    render(<App />);
+    fireEvent.keyDown(window, { key: ",", ctrlKey: true });
+    await waitFor(() => expect(screen.getByText("Compacta")).toBeDefined());
+
+    fireEvent.click(screen.getByText("Compacta"));
+    expect(document.documentElement.style.getPropertyValue("--row-height")).toBe("24px");
+    expect(ipc.settingsSet).toHaveBeenCalledWith("densidad", "compacta");
+
+    fireEvent.click(screen.getByText("Cómoda"));
+    expect(document.documentElement.style.getPropertyValue("--row-height")).toBe("34px");
+  });
+
+  it("los ajustes enseñan la latencia que ha medido el motor", async () => {
+    render(<App />);
+    fireEvent.keyDown(window, { key: ",", ctrlKey: true });
+    await waitFor(() => expect(screen.getByText(/p50 1.40 ms/)).toBeDefined());
+    expect(screen.getByText(/p95 2.60 ms/)).toBeDefined();
   });
 
   it("con la biblioteca vacía abre el asistente en vez de dejar una pantalla muerta", async () => {

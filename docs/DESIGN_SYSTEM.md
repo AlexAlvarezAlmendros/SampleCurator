@@ -148,9 +148,19 @@ Base **4 px**. Escala: `2 · 4 · 6 · 8 · 12 · 16 · 24 · 32 · 48`.
 │  Filtros   │                                      │   1 Kicks 42 │
 │  240 px    │  ← el 100 % del espacio sobrante →   │   2 Snares 8 │
 ├────────────┴──────────────────────────────────────┴──────────────┤
-│  Transporte + waveform + progreso de sesión            88 px      │
+│  Transporte + waveform + progreso de sesión         88 px mínimo  │
 └───────────────────────────────────────────────────────────────────┘
 ```
+
+> **Los altos son mínimos, no fijos.** El transporte se declaraba con `height: 88px` y en una
+> ventana de 1362 px los tres interruptores se envolvían a una segunda línea y quedaban
+> cortados por abajo. Alto fijo con contenido variable acaba recortando siempre, y basta una
+> traducción más larga o una fuente distinta para que vuelva a pasar. Se usa `min-height`.
+>
+> La única altura de verdad fija es `--row-height`, y lo es porque el virtualizador necesita
+> ese número exacto para saltar a cualquier posición sin medir. Por eso la densidad configurable
+> vive en el estado de la app y no en una media consulta al CSS: si el token cambiara por su
+> cuenta, la lista mediría mal.
 
 ---
 

@@ -35,7 +35,9 @@ export function Sidebar() {
   const progreso = useLibraryStore((s) => s.progreso);
   const buscando = useUiStore((s) => s.buscando);
 
+  const escaneando = useLibraryStore((s) => s.escaneando);
   const [texto, setTexto] = useState("");
+  const [confirmando, setConfirmando] = useState<number | null>(null);
   const campo = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -70,24 +72,88 @@ export function Sidebar() {
       </div>
 
       <div className={styles.seccion}>
-        <div className={styles.titulo}>Carpetas</div>
+        <div className={styles.cabeceraSeccion}>
+          <span className={styles.titulo}>Carpetas</span>
+          <button
+            type="button"
+            className={styles.accionTitulo}
+            onClick={() => void useLibraryStore.getState().anadirCarpeta()}
+            disabled={escaneando !== null}
+            title="Añadir otra carpeta de samples"
+            aria-label="Añadir carpeta"
+          >
+            +
+          </button>
+        </div>
+
         {fuentes.length === 0 && (
           <div className={styles.vacio}>
             Ninguna. Pulsa <Kbd>O</Kbd>
           </div>
         )}
+
         {fuentes.map((f) => (
-          <button
+          <div
             key={f.id}
-            type="button"
             className={styles.fuente}
             data-activa={f.id === fuenteActiva || undefined}
-            onClick={() => void useLibraryStore.getState().setFuente(f.id)}
-            title={f.path}
+            data-ocupada={escaneando === f.id || undefined}
           >
-            <span className={styles.nombreFuente}>{f.path.split("/").pop() ?? f.path}</span>
-            <span className={styles.cuenta}>{cifra(f.total)}</span>
-          </button>
+            {confirmando === f.id ? (
+              // Confirmación en la propia fila: el flujo de esta app no abre modales.
+              <div className={styles.confirmar}>
+                <span className={styles.pregunta}>¿Quitar del índice?</span>
+                <button
+                  type="button"
+                  className={styles.si}
+                  onClick={() => {
+                    setConfirmando(null);
+                    void useLibraryStore.getState().quitarFuenteDelIndice(f.id);
+                  }}
+                >
+                  Sí
+                </button>
+                <button type="button" className={styles.no} onClick={() => setConfirmando(null)}>
+                  No
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className={styles.nombreBoton}
+                  onClick={() => void useLibraryStore.getState().setFuente(f.id)}
+                  title={f.path}
+                >
+                  <span className={styles.nombreFuente}>{f.path.split("/").pop() ?? f.path}</span>
+                  <span className={styles.cuenta}>
+                    {escaneando === f.id ? "…" : cifra(f.total)}
+                  </span>
+                </button>
+                <span className={styles.acciones}>
+                  <button
+                    type="button"
+                    className={styles.iconito}
+                    disabled={escaneando !== null}
+                    onClick={() => void useLibraryStore.getState().reescanearFuente(f.id)}
+                    title="Volver a recorrerla: entra lo nuevo y se quita lo que ya no está"
+                    aria-label={`Reescanear ${f.path}`}
+                  >
+                    ↻
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.iconito}
+                    onClick={() => setConfirmando(f.id)}
+                    title="Quitarla del índice (no se borra ningún archivo del disco)"
+                    aria-label={`Quitar ${f.path}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              </>
+            )}
+          </div>
         ))}
       </div>
 
@@ -184,6 +250,15 @@ export function Sidebar() {
           Analizando… quedan {cifra(progreso.pendingAnalysis)}
         </div>
       )}
+
+      <button
+        type="button"
+        className={styles.ajustes}
+        onClick={() => useUiStore.getState().setAjustes(true)}
+      >
+        <span>Ajustes</span>
+        <Kbd>Ctrl+,</Kbd>
+      </button>
     </aside>
   );
 }

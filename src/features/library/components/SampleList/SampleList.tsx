@@ -1,17 +1,11 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { ALTURA_FILA, useUiStore } from "../../../../app/uiStore";
 import { Kbd } from "../../../../components/Kbd";
 import { cifra } from "../../../../lib/format";
 import { useLibraryStore } from "../../store";
 import { Row } from "../Row";
 import styles from "./SampleList.module.css";
-
-/** La altura de fila sale del token CSS: el layout y el diseño no pueden desincronizarse. */
-function alturaFila(): number {
-  const valor = getComputedStyle(document.documentElement).getPropertyValue("--row-height");
-  const n = Number.parseInt(valor, 10);
-  return Number.isFinite(n) && n > 0 ? n : 28;
-}
 
 export function SampleList() {
   const contenedor = useRef<HTMLDivElement>(null);
@@ -21,7 +15,9 @@ export function SampleList() {
   const asegurarRango = useLibraryStore((s) => s.asegurarRango);
   const irA = useLibraryStore((s) => s.irA);
 
-  const altura = useMemo(alturaFila, []);
+  // El alto sale de la preferencia del usuario, no de leer el CSS: el virtualizador necesita
+  // el número exacto, y si lo leyera del CSS y el CSS cambiara, mediría mal.
+  const altura = ALTURA_FILA[useUiStore((s) => s.densidad)];
 
   const virtualizador = useVirtualizer({
     count: total,
@@ -31,6 +27,15 @@ export function SampleList() {
   });
 
   const visibles = virtualizador.getVirtualItems();
+
+  // Cambiar la densidad invalida lo ya medido. Se compara contra el valor anterior en vez de
+  // remedir en cada render: `measure()` tira la caché de medidas entera.
+  const alturaAnterior = useRef(altura);
+  useEffect(() => {
+    if (alturaAnterior.current === altura) return;
+    alturaAnterior.current = altura;
+    virtualizador.measure();
+  }, [altura, virtualizador]);
 
   // Carga por ventanas: solo se piden las páginas que se están mirando.
   useEffect(() => {

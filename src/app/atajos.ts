@@ -343,6 +343,14 @@ function atajosTriaje(): Atajo[] {
       },
     },
     {
+      id: "ajustes",
+      etiqueta: "Ctrl+,",
+      descripcion: "Abrir los ajustes (carpetas, apariencia, escucha e información)",
+      grupo: "Biblioteca",
+      test: tecla(",", { ctrl: true }),
+      ejecutar: () => ui().setAjustes(true),
+    },
+    {
       id: "tema",
       etiqueta: "T",
       descripcion: "Cambiar entre tema oscuro y claro",
@@ -370,6 +378,10 @@ function atajosTriaje(): Atajo[] {
       test: tecla("escape"),
       ejecutar: () => {
         const u = ui();
+        if (u.ajustesAbiertos) {
+          u.setAjustes(false);
+          return;
+        }
         if (u.ayudaAbierta) {
           u.alternarAyuda();
           return;

@@ -3,6 +3,7 @@ import { Boton } from "../../../../components/Boton";
 import { Kbd } from "../../../../components/Kbd";
 import { cifra, tamano } from "../../../../lib/format";
 import { useTriageStore } from "../../store";
+import { useTrashStore } from "../../store.papelera";
 import styles from "./DestinationsPanel.module.css";
 
 /**
@@ -107,6 +108,9 @@ export function DestinationsPanel() {
             <span>
               Papelera: {cifra(papelera.files)} · {tamano(papelera.bytes)}
             </span>
+            <Boton onClick={() => void useTrashStore.getState().abrir()} atajo="⇧X">
+              Ver papelera
+            </Boton>
             <Boton
               variante="peligro"
               onClick={() => {

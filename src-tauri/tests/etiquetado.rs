@@ -58,6 +58,9 @@ fn id_de(e: &Escenario, nombre: &str) -> i64 {
         min_duration_ms: None,
         max_duration_ms: None,
         min_rating: 0,
+        unrated: false,
+        dest_id: None,
+        tag: None,
         offset: 0,
         limit: 500,
     };

@@ -9,6 +9,7 @@ use rusqlite::Connection;
 const MIGRACIONES: &[(&str, &str)] = &[
     ("001_esquema_inicial", ESQUEMA_INICIAL),
     ("002_etiquetas", ETIQUETAS),
+    ("003_metadatos", METADATOS),
 ];
 
 pub fn aplicar(conn: &mut Connection) -> Result<()> {
@@ -173,6 +174,20 @@ CREATE TABLE labels (
 
 CREATE INDEX idx_labels_campo  ON labels(field, source);
 CREATE INDEX idx_labels_sample ON labels(sample_id);
+"#;
+
+/// Migración 003 · lo que el usuario quiere poder decir de un sample.
+///
+/// Las tablas `tags` y `sample_tags` ya existían desde la 001 pero no las usaba nadie; aquí
+/// entran en juego. Las notas van en `samples` porque son uno a uno y siempre se leen con la
+/// fila. Y los dos índices parciales son para que filtrar por destino o por valoración no
+/// recorra 50.000 filas.
+const METADATOS: &str = r#"
+ALTER TABLE samples ADD COLUMN notes TEXT;
+
+CREATE INDEX idx_samples_dest   ON samples(dest_id)  WHERE dest_id IS NOT NULL;
+CREATE INDEX idx_samples_rating ON samples(rating)   WHERE rating > 0;
+CREATE INDEX idx_sample_tags_tag ON sample_tags(tag_id);
 "#;
 
 #[cfg(test)]

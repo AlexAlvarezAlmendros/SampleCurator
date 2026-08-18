@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLabelsStore } from "../../../features/labels/store";
 import { filaEn, useLibraryStore } from "../../../features/library/store";
+import { useMetaStore } from "../../../features/meta/store";
 import { usePlayerStore } from "../../../features/player/store";
 import { useTriageStore } from "../../../features/triage/store";
 import * as ipc from "../../../lib/ipc";
@@ -25,6 +26,9 @@ export function AutoPlay() {
 
     if (useLabelsStore.getState().modo) {
       void useLabelsStore.getState().cargarDe(idEnFoco);
+    }
+    if (useMetaStore.getState().modo) {
+      void useMetaStore.getState().cargarDe(idEnFoco);
     }
 
     // El prefetch y el "recuérdame dónde estaba" van con freno: en un barrido rápido de

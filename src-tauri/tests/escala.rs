@@ -25,6 +25,9 @@ fn consulta(source_id: Option<i64>, busqueda: Option<&str>, estado: StatusFilter
         min_duration_ms: None,
         max_duration_ms: None,
         min_rating: 0,
+        unrated: false,
+        dest_id: None,
+        tag: None,
         offset: 0,
         limit: 200,
     }

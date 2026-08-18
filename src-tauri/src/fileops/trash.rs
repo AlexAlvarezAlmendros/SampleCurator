@@ -55,6 +55,91 @@ fn escapar(s: &str) -> String {
     out
 }
 
+/// Una línea del manifiesto, tal cual se escribió.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct Anotacion {
+    pub at: i64,
+    #[serde(rename = "sampleId")]
+    pub sample_id: i64,
+    pub from: String,
+    pub to: String,
+}
+
+/// Lee el manifiesto y añade los archivos que estén en la carpeta sin anotación.
+///
+/// Puede haber archivos sin línea —manifiesto perdido, copiado a mano— y se listan igual: la
+/// carpeta es la verdad, el manifiesto solo dice de dónde venía cada uno.
+pub fn entradas(dest_root: &Path) -> Vec<Anotacion> {
+    let dir = carpeta(dest_root);
+    let mut anotadas: Vec<Anotacion> = Vec::new();
+
+    if let Ok(texto) = std::fs::read_to_string(dir.join(MANIFIESTO)) {
+        for linea in texto.lines() {
+            if let Ok(a) = serde_json::from_str::<Anotacion>(linea) {
+                if Path::new(&a.to).exists() {
+                    anotadas.push(a);
+                }
+            }
+        }
+    }
+
+    let conocidas: std::collections::HashSet<String> =
+        anotadas.iter().map(|a| a.to.clone()).collect();
+
+    if let Ok(entradas) = std::fs::read_dir(&dir) {
+        for e in entradas.flatten() {
+            if e.file_name() == MANIFIESTO {
+                continue;
+            }
+            if !e.metadata().map(|m| m.is_file()).unwrap_or(false) {
+                continue;
+            }
+            let ruta = e.path().to_string_lossy().to_string();
+            if conocidas.contains(&ruta) {
+                continue;
+            }
+            // Sin anotación no se sabe de dónde venía: se deja `from` vacío y quien restaure
+            // tendrá que elegir destino.
+            anotadas.push(Anotacion {
+                at: 0,
+                sample_id: 0,
+                from: String::new(),
+                to: ruta,
+            });
+        }
+    }
+
+    // Lo último rechazado, primero: es lo que más probablemente quieras recuperar.
+    anotadas.sort_by_key(|a| std::cmp::Reverse(a.at));
+    anotadas
+}
+
+/// Quita una línea del manifiesto tras restaurar. Se reescribe entero de forma atómica: son
+/// unos pocos kilobytes y así no puede quedar a medias.
+pub fn olvidar(dest_root: &Path, trash_path: &str) -> Result<()> {
+    let dir = carpeta(dest_root);
+    let archivo = dir.join(MANIFIESTO);
+    let Ok(texto) = std::fs::read_to_string(&archivo) else {
+        return Ok(());
+    };
+    let quedan: Vec<&str> = texto
+        .lines()
+        .filter(|l| {
+            serde_json::from_str::<Anotacion>(l)
+                .map(|a| a.to != trash_path)
+                .unwrap_or(true)
+        })
+        .collect();
+
+    let temporal = archivo.with_extension("jsonl.tmp");
+    std::fs::write(
+        &temporal,
+        quedan.join("\n") + if quedan.is_empty() { "" } else { "\n" },
+    )?;
+    std::fs::rename(&temporal, &archivo)?;
+    Ok(())
+}
+
 pub struct Resumen {
     pub archivos: i64,
     pub bytes: i64,

@@ -7,6 +7,7 @@
 pub mod labels;
 pub mod migrations;
 pub mod queries;
+pub mod tags;
 pub mod triage;
 
 use crate::error::{AppError, Result};

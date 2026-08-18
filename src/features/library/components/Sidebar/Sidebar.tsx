@@ -3,13 +3,15 @@ import { useUiStore } from "../../../../app/uiStore";
 import type { SortBy, StatusFilter } from "../../../../bindings";
 import { Kbd } from "../../../../components/Kbd";
 import { cifra } from "../../../../lib/format";
+import { useMetaStore } from "../../../meta/store";
+import { useTriageStore } from "../../../triage/store";
 import { useLibraryStore } from "../../store";
 import styles from "./Sidebar.module.css";
 
 const FILTROS: Array<{ valor: StatusFilter; etiqueta: string; atajo?: string }> = [
   { valor: "all", etiqueta: "Todos" },
-  { valor: "pending", etiqueta: "Pendientes", atajo: "⇧P" },
-  { valor: "decided", etiqueta: "Decididos" },
+  { valor: "pending", etiqueta: "Sin clasificar", atajo: "⇧P" },
+  { valor: "decided", etiqueta: "Clasificados" },
   { valor: "kept", etiqueta: "Conservados" },
   { valor: "rejected", etiqueta: "Rechazados" },
   { valor: "duplicates", etiqueta: "Duplicados", atajo: "⇧D" },
@@ -31,6 +33,11 @@ export function Sidebar() {
   const orden = useLibraryStore((s) => s.orden);
   const duracion = useLibraryStore((s) => s.duracion);
   const minValoracion = useLibraryStore((s) => s.minValoracion);
+  const sinValorar = useLibraryStore((s) => s.sinValorar);
+  const destinoFiltro = useLibraryStore((s) => s.destinoFiltro);
+  const etiquetaFiltro = useLibraryStore((s) => s.etiquetaFiltro);
+  const destinos = useTriageStore((s) => s.destinos);
+  const etiquetas = useMetaStore((s) => s.catalogo);
   const stats = useLibraryStore((s) => s.stats);
   const progreso = useLibraryStore((s) => s.progreso);
   const buscando = useUiStore((s) => s.buscando);
@@ -173,6 +180,61 @@ export function Sidebar() {
         ))}
       </div>
 
+      {destinos.length > 0 && (
+        <div className={styles.seccion}>
+          <div className={styles.titulo}>Destino</div>
+          <button
+            type="button"
+            className={styles.opcion}
+            data-activa={destinoFiltro === null || undefined}
+            onClick={() => void useLibraryStore.getState().setDestinoFiltro(null)}
+          >
+            <span>Cualquiera</span>
+          </button>
+          {destinos.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              className={styles.opcion}
+              data-activa={destinoFiltro === d.id || undefined}
+              onClick={() => void useLibraryStore.getState().setDestinoFiltro(d.id)}
+              aria-label={`Filtrar por ${d.name}`}
+            >
+              <span style={{ color: `var(--${d.color})` }}>{d.name}</span>
+              <span className={styles.cuenta}>{cifra(d.count)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {etiquetas.length > 0 && (
+        <div className={styles.seccion}>
+          <div className={styles.titulo}>Etiqueta</div>
+          <div className={styles.ordenes}>
+            <button
+              type="button"
+              className={styles.pastilla}
+              data-activa={etiquetaFiltro === null || undefined}
+              onClick={() => void useLibraryStore.getState().setEtiquetaFiltro(null)}
+            >
+              Todas
+            </button>
+            {etiquetas.slice(0, 12).map(([nombre, cuantos]) => (
+              <button
+                key={nombre}
+                type="button"
+                className={styles.pastilla}
+                data-activa={etiquetaFiltro === nombre || undefined}
+                onClick={() => void useLibraryStore.getState().setEtiquetaFiltro(nombre)}
+                title={`${cuantos} samples`}
+              >
+                {nombre}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className={styles.seccion}>
         <div className={styles.titulo}>Duración</div>
         <div className={styles.ordenes}>
@@ -195,17 +257,35 @@ export function Sidebar() {
           ))}
         </div>
         <div className={styles.ordenes}>
-          {[0, 3, 5].map((v) => (
+          <button
+            type="button"
+            className={styles.pastilla}
+            data-activa={(minValoracion === 0 && !sinValorar) || undefined}
+            onClick={() => void useLibraryStore.getState().setMinValoracion(0)}
+          >
+            Todas
+          </button>
+          {[1, 2, 3, 4, 5].map((v) => (
             <button
               key={v}
               type="button"
               className={styles.pastilla}
               data-activa={minValoracion === v || undefined}
               onClick={() => void useLibraryStore.getState().setMinValoracion(v)}
+              title={`${v} estrellas o más`}
             >
-              {v === 0 ? "Sin filtro" : `★ ${v}+`}
+              {"★".repeat(v)}
             </button>
           ))}
+          <button
+            type="button"
+            className={styles.pastilla}
+            data-activa={sinValorar || undefined}
+            onClick={() => void useLibraryStore.getState().setSinValorar(!sinValorar)}
+            title="Los que todavía no has valorado"
+          >
+            sin valorar
+          </button>
         </div>
       </div>
 

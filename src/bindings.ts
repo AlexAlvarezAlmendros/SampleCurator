@@ -55,7 +55,19 @@ minDurationMs: number | null, maxDurationMs: number | null,
 /**
  * Valoración mínima (0 = sin filtrar).
  */
-minRating: number, offset: number, limit: number, };
+minRating: number, 
+/**
+ * Solo los que aún no tienes valorados.
+ */
+unrated: boolean, 
+/**
+ * Solo los enviados a este destino.
+ */
+destId: number | null, 
+/**
+ * Solo los que llevan esta etiqueta.
+ */
+tag: string | null, offset: number, limit: number, };
 
 export type LibraryStats = { total: number, pending: number, kept: number, rejected: number, moved: number, analyzed: number, duplicates: number, };
 
@@ -68,7 +80,7 @@ startedAtMs: number, durationMs: number, startOffsetMs: number, looping: boolean
 
 export type Project = { id: number, name: string, destRoot: string, mode: TriageMode, createdAt: number, };
 
-export type SampleDetail = { row: SampleRow, absPath: string, loudnessDb: number | null, bitDepth: number | null, tags: Array<string>, };
+export type SampleDetail = { row: SampleRow, absPath: string, loudnessDb: number | null, bitDepth: number | null, tags: Array<string>, notes: string | null, };
 
 /**
  * Taxonomía cerrada de tipos de sample. Cerrada a propósito: una lista abierta convierte el
@@ -101,6 +113,16 @@ export type SortBy = "path" | "filename" | "duration" | "size" | "loudness" | "r
 export type SourceInfo = { id: number, path: string, addedAt: number, total: number, analyzed: number, };
 
 export type StatusFilter = "all" | "pending" | "decided" | "kept" | "rejected" | "duplicates";
+
+/**
+ * Una entrada de la papelera. Puede haber archivos sin fila en el índice —si se quitó la
+ * carpeta de origen— y por eso `sample_id` es opcional: se restauran igual.
+ */
+export type TrashEntry = { sampleId: number | null, filename: string, trashPath: string, originalPath: string, at: number, size: number, durationMs: number | null, 
+/**
+ * `false` cuando el archivo está en la papelera pero ya no hay fila que actualizar.
+ */
+inIndex: boolean, };
 
 export type TrashSummary = { files: number, bytes: number, };
 

@@ -33,6 +33,7 @@ interface PlayerState {
   alternarAutoplay: () => void;
   alternarNormalizar: () => void;
   ajustarVolumen: (delta: number) => Promise<void>;
+  ponerVolumen: (v: number) => Promise<void>;
   saltarRelativo: (segundos: number) => Promise<void>;
   saltarA: (fraccion: number) => Promise<void>;
   prefetch: (ids: number[]) => void;
@@ -129,6 +130,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   async ajustarVolumen(delta) {
     const volumen = Math.min(2, Math.max(0, Number((get().volumen + delta).toFixed(2))));
+    set({ volumen, silenciado: false });
+    await ipc.ganancia(volumen).catch((e) => log.warn("no se pudo ajustar el volumen", e));
+  },
+
+  /** Volumen absoluto, para el deslizador. Hasta 150 % porque hay samples grabados bajísimos. */
+  async ponerVolumen(v) {
+    const volumen = Math.min(1.5, Math.max(0, Number(v.toFixed(2))));
     set({ volumen, silenciado: false });
     await ipc.ganancia(volumen).catch((e) => log.warn("no se pudo ajustar el volumen", e));
   },

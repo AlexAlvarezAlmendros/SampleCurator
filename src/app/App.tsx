@@ -4,11 +4,15 @@ import { useLabelsStore } from "../features/labels/store";
 import { SampleList } from "../features/library/components/SampleList";
 import { Sidebar } from "../features/library/components/Sidebar";
 import { consultaActual, useLibraryStore } from "../features/library/store";
+import { InspectorPanel } from "../features/meta/components/InspectorPanel";
+import { useMetaStore } from "../features/meta/store";
 import { Transport } from "../features/player/components/Transport";
 import { HelpOverlay } from "../features/settings/components/HelpOverlay";
 import { SettingsPanel } from "../features/settings/components/SettingsPanel";
 import { DestinationsPanel } from "../features/triage/components/DestinationsPanel";
+import { TrashPanel } from "../features/triage/components/TrashPanel";
 import { useTriageStore } from "../features/triage/store";
+import { useTrashStore } from "../features/triage/store.papelera";
 import * as ipc from "../lib/ipc";
 import { registrarKeymap } from "../lib/keymap";
 import { log } from "../lib/log";
@@ -22,7 +26,9 @@ import { useUiStore } from "./uiStore";
 export function App() {
   const ayudaAbierta = useUiStore((s) => s.ayudaAbierta);
   const modoEtiquetado = useLabelsStore((s) => s.modo);
+  const inspector = useMetaStore((s) => s.modo);
   const ajustesAbiertos = useUiStore((s) => s.ajustesAbiertos);
+  const papeleraAbierta = useTrashStore((s) => s.abierta);
   const asistenteAbierto = useUiStore((s) => s.asistenteAbierto);
 
   // ── arranque ────────────────────────────────────────────────
@@ -32,6 +38,7 @@ export function App() {
       await lib.cargarFuentes();
       await lib.refrescar();
       await useTriageStore.getState().cargar();
+      void useMetaStore.getState().refrescarCatalogo();
 
       // Retomar el triaje donde se dejó: un triaje que te devuelve al principio cada vez
       // que abres la app no se termina nunca.
@@ -76,7 +83,12 @@ export function App() {
       const todos = construirAtajos();
       // Con un panel abierto solo quedan vivos Esc y la ayuda: nada de disparar decisiones
       // de triaje contra una lista que no se está viendo.
-      if (ui.asistenteAbierto || ui.ayudaAbierta || ui.ajustesAbiertos) {
+      if (
+        ui.asistenteAbierto ||
+        ui.ayudaAbierta ||
+        ui.ajustesAbiertos ||
+        useTrashStore.getState().abierta
+      ) {
         return todos.filter((a) => a.id === "escape" || a.id === "ayuda");
       }
       return todos;
@@ -137,12 +149,13 @@ export function App() {
         <main className={styles.lista}>
           <SampleList />
         </main>
-        {modoEtiquetado ? <LabelPanel /> : <DestinationsPanel />}
+        {modoEtiquetado ? <LabelPanel /> : inspector ? <InspectorPanel /> : <DestinationsPanel />}
       </div>
       <Transport />
       <StatusBar />
       {ayudaAbierta && <HelpOverlay />}
       {ajustesAbiertos && <SettingsPanel />}
+      {papeleraAbierta && <TrashPanel />}
       {asistenteAbierto && <SetupWizard />}
       <AutoPlay />
     </div>

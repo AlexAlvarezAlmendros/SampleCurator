@@ -1,5 +1,13 @@
 /** Piezas del navegador que jsdom no trae y que la app sí usa. */
-import { vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
+
+// Desmontar entre tests, explícitamente. Sin esto los árboles se acumulan en el DOM y las
+// consultas encuentran el mismo texto varias veces — con el orden por defecto casi nunca se
+// nota, y con `--sequence.shuffle` fallan a pares.
+afterEach(() => {
+  cleanup();
+});
 
 class ResizeObserverFalso {
   observe(): void {}

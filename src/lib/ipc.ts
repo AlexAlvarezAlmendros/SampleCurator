@@ -25,6 +25,7 @@ import type {
   ScanProgress,
   SessionProgress,
   SourceInfo,
+  TrashEntry,
   TrashSummary,
   TriageMode,
   TriageResult,
@@ -220,6 +221,27 @@ export const recordarPosicion = (projectId: number, sampleId: number): Promise<v
   llamar("triage_remember", { projectId, sampleId });
 export const ultimaPosicion = (projectId: number): Promise<number | null> =>
   llamar("triage_last_sample", { projectId });
+
+// ─────────────────────── metadatos (Fase 9) ───────────────────────
+
+export const etiquetasDeSample = (sampleId: number): Promise<string[]> =>
+  llamar("tags_of", { sampleId });
+export const ponerTag = (sampleId: number, name: string): Promise<void> =>
+  llamar("tags_add", { sampleId, name });
+export const quitarTag = (sampleId: number, name: string): Promise<void> =>
+  llamar("tags_remove", { sampleId, name });
+/** Catálogo de etiquetas con cuántos samples las llevan. */
+export const catalogoTags = (): Promise<Array<[string, number]>> => llamar("tags_all");
+export const ponerNotas = (sampleId: number, text: string): Promise<void> =>
+  llamar("notes_set", { sampleId, text });
+
+// ─────────────────────── papelera (Fase 9) ───────────────────────
+
+export const listarPapelera = (projectId: number): Promise<TrashEntry[]> =>
+  llamar("trash_list", { projectId });
+/** Devuelve un archivo a su carpeta original y lo pone otra vez en la cola. */
+export const restaurarDePapelera = (projectId: number, trashPath: string): Promise<number> =>
+  llamar("trash_restore", { projectId, trashPath });
 
 export const resumenPapelera = (projectId: number): Promise<TrashSummary> =>
   llamar("triage_trash_summary", { projectId });

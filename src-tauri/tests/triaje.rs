@@ -84,6 +84,9 @@ fn id_de(e: &Escenario, nombre: &str) -> i64 {
         min_duration_ms: None,
         max_duration_ms: None,
         min_rating: 0,
+        unrated: false,
+        dest_id: None,
+        tag: None,
         offset: 0,
         limit: 500,
     };
@@ -105,6 +108,9 @@ fn ids(e: &Escenario) -> Vec<i64> {
         min_duration_ms: None,
         max_duration_ms: None,
         min_rating: 0,
+        unrated: false,
+        dest_id: None,
+        tag: None,
         offset: 0,
         limit: 500,
     };
@@ -463,4 +469,112 @@ fn la_copia_de_seguridad_recoge_las_decisiones() {
     assert!(texto.contains("\"destination\": \"Kicks\""));
     assert!(texto.contains("\"status\": \"rejected\""));
     assert!(texto.contains("\"hotkey\": \"1\""));
+}
+
+// ─────────────────────────── papelera ───────────────────────────
+
+#[test]
+fn lo_rechazado_se_ve_en_la_papelera_y_se_puede_devolver_a_su_sitio() {
+    let e = montar(TriageMode::Move, &[("fx", "ruido.wav")]);
+    let id = id_de(&e, "ruido.wav");
+    let original = e.origen.join("fx/ruido.wav");
+
+    fileops::rechazar(&e.db, e.proyecto.id, &[id]).unwrap();
+    assert!(!original.exists());
+
+    let papelera = fileops::papelera(&e.db, e.proyecto.id).unwrap();
+    assert_eq!(papelera.len(), 1);
+    assert_eq!(papelera[0].filename, "ruido.wav");
+    assert_eq!(papelera[0].sample_id, Some(id));
+    assert!(papelera[0].in_index);
+    assert!(papelera[0].size > 0, "se ve cuánto ocupa antes de decidir");
+
+    fileops::restaurar(&e.db, e.proyecto.id, &papelera[0].trash_path).unwrap();
+
+    assert!(original.exists(), "vuelve exactamente a su carpeta");
+    let estado = e.db.read(|c| triage::sample_state(c, id)).unwrap();
+    assert_eq!(
+        estado.status,
+        SampleStatus::Pending,
+        "restaurar devuelve a la cola"
+    );
+    assert_eq!(estado.current_path, None);
+    assert!(
+        fileops::papelera(&e.db, e.proyecto.id).unwrap().is_empty(),
+        "y desaparece de la papelera"
+    );
+}
+
+#[test]
+fn restaurar_no_pisa_un_archivo_que_haya_ocupado_su_sitio() {
+    let e = montar(TriageMode::Move, &[("fx", "ruido.wav")]);
+    let id = id_de(&e, "ruido.wav");
+    let original = e.origen.join("fx/ruido.wav");
+
+    fileops::rechazar(&e.db, e.proyecto.id, &[id]).unwrap();
+    // Mientras estaba en la papelera, alguien puso otro archivo con ese nombre.
+    std::fs::write(&original, b"soy otro archivo distinto").unwrap();
+
+    let papelera = fileops::papelera(&e.db, e.proyecto.id).unwrap();
+    fileops::restaurar(&e.db, e.proyecto.id, &papelera[0].trash_path).unwrap();
+
+    assert_eq!(
+        std::fs::read(&original).unwrap(),
+        b"soy otro archivo distinto",
+        "el intruso no se toca"
+    );
+    assert!(
+        e.origen.join("fx/ruido (2).wav").exists(),
+        "el restaurado se coloca al lado, con sufijo"
+    );
+}
+
+#[test]
+fn una_entrada_sin_anotacion_no_se_restaura_a_ciegas() {
+    let e = montar(TriageMode::Move, &[("fx", "a.wav")]);
+    let dir = fileops::trash::asegurar(&e.destino_raiz).unwrap();
+    // Un archivo que apareció en la papelera sin pasar por la app: no se sabe de dónde venía.
+    std::fs::write(dir.join("huerfano.wav"), b"1234").unwrap();
+
+    let papelera = fileops::papelera(&e.db, e.proyecto.id).unwrap();
+    let huerfano = papelera
+        .iter()
+        .find(|x| x.filename == "huerfano.wav")
+        .unwrap();
+    assert!(!huerfano.in_index);
+    assert_eq!(huerfano.original_path, "");
+
+    let r = fileops::restaurar(&e.db, e.proyecto.id, &huerfano.trash_path);
+    assert!(
+        r.is_err(),
+        "sin saber su origen, restaurar sería inventarse un destino"
+    );
+    assert!(
+        dir.join("huerfano.wav").exists(),
+        "y el archivo sigue donde estaba"
+    );
+}
+
+#[test]
+fn el_manifiesto_se_limpia_al_restaurar_pero_conserva_el_resto() {
+    let e = montar(TriageMode::Move, &[("fx", "a.wav"), ("fx", "b.wav")]);
+    let ids = ids(&e);
+    fileops::rechazar(&e.db, e.proyecto.id, &ids).unwrap();
+
+    let papelera = fileops::papelera(&e.db, e.proyecto.id).unwrap();
+    assert_eq!(papelera.len(), 2);
+    fileops::restaurar(&e.db, e.proyecto.id, &papelera[0].trash_path).unwrap();
+
+    let quedan = fileops::papelera(&e.db, e.proyecto.id).unwrap();
+    assert_eq!(quedan.len(), 1, "solo se va la restaurada");
+    assert_ne!(quedan[0].trash_path, papelera[0].trash_path);
+
+    let manifiesto =
+        std::fs::read_to_string(fileops::trash::carpeta(&e.destino_raiz).join("manifiesto.jsonl"))
+            .unwrap();
+    assert_eq!(
+        manifiesto.lines().count(),
+        1,
+        "y su línea desaparece del manifiesto"
+    );
 }

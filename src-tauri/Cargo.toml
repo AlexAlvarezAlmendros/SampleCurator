@@ -1,0 +1,47 @@
+[package]
+name = "samplecurator"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.83"
+description = "Triaje rápido de librerías de samples"
+authors = ["Alex Alvarez"]
+license = "MIT"
+
+[workspace]
+
+[lib]
+name = "samplecurator_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = ["codegen"] }
+
+[dependencies]
+blake3 = "1.8.6"
+cpal = "0.17.3"
+jwalk = "0.9.0"
+libc = "0.2.189"
+rayon = "1.12.0"
+rtrb = "0.4.0"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+symphonia = { version = "0.5.5", features = ["all"] }
+tauri = { version = "2.11.5", features = [] }
+tauri-plugin-dialog = "2.7.2"
+tauri-plugin-opener = "2.5.4"
+thiserror = "2.0.20"
+ts-rs = "12.0.1"
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+# Perfil de release: lo que se distribuye. `panic = "abort"` queda FUERA a propósito: un
+# panic en un hilo secundario no debe llevarse la app entera, y además rompería
+# `cargo test --release`, que es donde corre la prueba de escala.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+opt-level = 3
+strip = true
+panic = "unwind"

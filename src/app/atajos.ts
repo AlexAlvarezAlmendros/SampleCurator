@@ -1,0 +1,359 @@
+/**
+ * La tabla de atajos de SampleCurator. Es también la fuente de la pantalla de ayuda (`?`),
+ * así que cada acción que exista aquí se ve documentada en la interfaz automáticamente.
+ *
+ * El bucle entero es: navegar con ↓/↑ (suena solo), decidir con 1…9 o X, deshacer con Ctrl+Z.
+ */
+import { filaEn, useLibraryStore } from "../features/library/store";
+import { usePlayerStore } from "../features/player/store";
+import { useTriageStore } from "../features/triage/store";
+import * as ipc from "../lib/ipc";
+import type { Atajo } from "../lib/keymap";
+import { algunaTecla, esDigito1a9, tecla } from "../lib/keymap";
+import { useUiStore } from "./uiStore";
+
+function idEnFoco(): number | null {
+  const lib = useLibraryStore.getState();
+  return filaEn(lib, lib.foco)?.id ?? null;
+}
+
+export function construirAtajos(): Atajo[] {
+  const lib = () => useLibraryStore.getState();
+  const player = () => usePlayerStore.getState();
+  const triage = () => useTriageStore.getState();
+  const ui = () => useUiStore.getState();
+
+  return [
+    // ── navegación ─────────────────────────────────────────────
+    {
+      id: "abajo",
+      etiqueta: "↓ / J",
+      descripcion: "Siguiente sample (y suena)",
+      grupo: "Navegación",
+      test: algunaTecla(["arrowdown", "j"]),
+      ejecutar: () => lib().mover(1),
+    },
+    {
+      id: "arriba",
+      etiqueta: "↑ / K",
+      descripcion: "Sample anterior (y suena)",
+      grupo: "Navegación",
+      test: algunaTecla(["arrowup", "k"]),
+      ejecutar: () => lib().mover(-1),
+    },
+    {
+      id: "extender-abajo",
+      etiqueta: "⇧ ↓",
+      descripcion: "Extender la selección hacia abajo",
+      grupo: "Navegación",
+      test: tecla("arrowdown", { shift: true }),
+      ejecutar: () => lib().mover(1, true),
+    },
+    {
+      id: "extender-arriba",
+      etiqueta: "⇧ ↑",
+      descripcion: "Extender la selección hacia arriba",
+      grupo: "Navegación",
+      test: tecla("arrowup", { shift: true }),
+      ejecutar: () => lib().mover(-1, true),
+    },
+    {
+      id: "salto-abajo",
+      etiqueta: "Av Pág",
+      descripcion: "Bajar 10",
+      grupo: "Navegación",
+      test: tecla("pagedown"),
+      ejecutar: () => lib().mover(10),
+    },
+    {
+      id: "salto-arriba",
+      etiqueta: "Re Pág",
+      descripcion: "Subir 10",
+      grupo: "Navegación",
+      test: tecla("pageup"),
+      ejecutar: () => lib().mover(-10),
+    },
+    {
+      id: "inicio",
+      etiqueta: "Inicio",
+      descripcion: "Ir al primero",
+      grupo: "Navegación",
+      test: tecla("home"),
+      ejecutar: () => lib().irA(0),
+    },
+    {
+      id: "fin",
+      etiqueta: "Fin",
+      descripcion: "Ir al último",
+      grupo: "Navegación",
+      test: tecla("end"),
+      ejecutar: () => lib().irA(lib().total - 1),
+    },
+    {
+      id: "seleccionar-todo",
+      etiqueta: "Ctrl+A",
+      descripcion: "Seleccionar todo lo filtrado",
+      grupo: "Navegación",
+      test: tecla("a", { ctrl: true }),
+      ejecutar: () => lib().seleccionarTodo(),
+    },
+
+    // ── escucha ────────────────────────────────────────────────
+    {
+      id: "repetir",
+      etiqueta: "Espacio",
+      descripcion: "Repetir desde el principio",
+      grupo: "Escucha",
+      test: tecla(" "),
+      ejecutar: () => {
+        const id = idEnFoco();
+        if (id !== null) void player().reproducir(id);
+      },
+    },
+    {
+      id: "bucle",
+      etiqueta: "⇧ Espacio",
+      descripcion: "Bucle sí/no",
+      grupo: "Escucha",
+      test: tecla(" ", { shift: true }),
+      ejecutar: () => player().alternarBucle(),
+    },
+    {
+      id: "atras",
+      etiqueta: "←",
+      descripcion: "Retroceder 0,5 s",
+      grupo: "Escucha",
+      test: tecla("arrowleft"),
+      ejecutar: () => player().saltarRelativo(-0.5),
+    },
+    {
+      id: "adelante",
+      etiqueta: "→",
+      descripcion: "Avanzar 0,5 s",
+      grupo: "Escucha",
+      test: tecla("arrowright"),
+      ejecutar: () => player().saltarRelativo(0.5),
+    },
+    {
+      id: "silencio",
+      etiqueta: "S",
+      descripcion: "Silenciar / reanudar",
+      grupo: "Escucha",
+      test: tecla("s"),
+      ejecutar: () => player().alternarSilencio(),
+    },
+    {
+      id: "subir-volumen",
+      etiqueta: "+",
+      descripcion: "Subir el volumen",
+      grupo: "Escucha",
+      test: algunaTecla(["+", "="]),
+      ejecutar: () => player().ajustarVolumen(0.1),
+    },
+    {
+      id: "bajar-volumen",
+      etiqueta: "−",
+      descripcion: "Bajar el volumen",
+      grupo: "Escucha",
+      test: tecla("-"),
+      ejecutar: () => player().ajustarVolumen(-0.1),
+    },
+    {
+      id: "autoplay",
+      etiqueta: "⇧ A",
+      descripcion: "Autoplay al enfocar sí/no",
+      grupo: "Escucha",
+      test: tecla("a", { shift: true }),
+      ejecutar: () => {
+        player().alternarAutoplay();
+        ui().avisar("info", player().autoplay ? "Autoplay activado" : "Autoplay desactivado");
+      },
+    },
+
+    // ── decisión ───────────────────────────────────────────────
+    {
+      id: "destino",
+      etiqueta: "1 … 9",
+      descripcion: "Enviar al destino N y avanzar",
+      grupo: "Decisión",
+      test: esDigito1a9,
+      ejecutar: (e) => triage().enviarATecla(e.key),
+    },
+    {
+      id: "rechazar",
+      etiqueta: "X / Supr",
+      descripcion: "Rechazar (a la papelera) y avanzar",
+      grupo: "Decisión",
+      test: algunaTecla(["x", "delete"]),
+      ejecutar: () => triage().rechazar(),
+    },
+    {
+      id: "conservar",
+      etiqueta: "Intro",
+      descripcion: "Conservar en su sitio y avanzar",
+      grupo: "Decisión",
+      test: tecla("enter"),
+      ejecutar: () => triage().conservar(),
+    },
+    {
+      id: "deshacer",
+      etiqueta: "Ctrl+Z",
+      descripcion: "Deshacer (devuelve archivo, estado y foco)",
+      grupo: "Decisión",
+      test: tecla("z", { ctrl: true }),
+      ejecutar: () => triage().deshacer(),
+    },
+    {
+      id: "rehacer",
+      etiqueta: "Ctrl+⇧+Z",
+      descripcion: "Rehacer",
+      grupo: "Decisión",
+      test: tecla("z", { ctrl: true, shift: true }),
+      ejecutar: () => triage().rehacer(),
+    },
+    {
+      id: "favorito",
+      etiqueta: "F",
+      descripcion: "Marcar como favorito (5 estrellas)",
+      grupo: "Decisión",
+      test: tecla("f"),
+      ejecutar: async () => {
+        const id = idEnFoco();
+        if (id === null) return;
+        const fila = filaEn(lib(), lib().foco);
+        const nuevo = fila && fila.rating >= 5 ? 0 : 5;
+        await ipc.valorar(id, nuevo);
+        lib().parchear(id, { rating: nuevo });
+      },
+    },
+
+    // ── biblioteca ─────────────────────────────────────────────
+    {
+      id: "renombrar",
+      etiqueta: "F2",
+      descripcion: "Renombrar el archivo",
+      grupo: "Decisión",
+      test: tecla("f2"),
+      ejecutar: () => {
+        if (idEnFoco() !== null) ui().setRenombrando(true);
+      },
+    },
+    {
+      id: "exportar",
+      etiqueta: "Ctrl+E",
+      descripcion: "Guardar las decisiones en library.json",
+      grupo: "Biblioteca",
+      test: tecla("e", { ctrl: true }),
+      ejecutar: async () => {
+        const proyecto = triage().proyecto;
+        if (!proyecto) {
+          ui().avisar("info", "No hay sesión que exportar");
+          return;
+        }
+        try {
+          const ruta = await ipc.exportarDecisiones(proyecto.id);
+          ui().avisar("exito", `Decisiones guardadas en ${ruta}`);
+        } catch {
+          ui().avisar("error", "No se pudieron guardar las decisiones");
+        }
+      },
+    },
+    {
+      id: "tema",
+      etiqueta: "T",
+      descripcion: "Cambiar entre tema oscuro y claro",
+      grupo: "Biblioteca",
+      test: tecla("t"),
+      ejecutar: () => {
+        ui().alternarTema();
+        void ipc.settingsSet("tema", useUiStore.getState().tema).catch(() => {});
+      },
+    },
+    {
+      id: "buscar",
+      etiqueta: "/",
+      descripcion: "Buscar",
+      grupo: "Biblioteca",
+      test: tecla("/"),
+      ejecutar: () => ui().setBuscando(true),
+    },
+    {
+      id: "escape",
+      etiqueta: "Esc",
+      descripcion: "Cerrar búsqueda, ayuda o selección",
+      grupo: "Biblioteca",
+      enTexto: true,
+      test: tecla("escape"),
+      ejecutar: () => {
+        const u = ui();
+        if (u.ayudaAbierta) {
+          u.alternarAyuda();
+          return;
+        }
+        if (u.asistenteAbierto) {
+          u.setAsistente(false);
+          return;
+        }
+        if (u.buscando) {
+          u.setBuscando(false);
+          void lib().setBusqueda("");
+          return;
+        }
+        lib().limpiarSeleccion();
+      },
+    },
+    {
+      id: "abrir-origen",
+      etiqueta: "O",
+      descripcion: "Añadir una carpeta de samples",
+      grupo: "Biblioteca",
+      test: tecla("o"),
+      ejecutar: () => ui().setAsistente(true),
+    },
+    {
+      id: "elegir-destino",
+      etiqueta: "D",
+      descripcion: "Elegir la carpeta de destino",
+      grupo: "Biblioteca",
+      test: tecla("d"),
+      ejecutar: () => ui().setAsistente(true),
+    },
+    {
+      id: "revelar",
+      etiqueta: "Ctrl+R",
+      descripcion: "Abrir la carpeta del sample en el explorador",
+      grupo: "Biblioteca",
+      test: tecla("r", { ctrl: true }),
+      ejecutar: async () => {
+        const id = idEnFoco();
+        if (id === null) return;
+        const d = await ipc.detalle(id);
+        await ipc.revelarEnElExplorador(d.absPath);
+      },
+    },
+    {
+      id: "solo-pendientes",
+      etiqueta: "⇧ P",
+      descripcion: "Filtrar solo los pendientes",
+      grupo: "Biblioteca",
+      test: tecla("p", { shift: true }),
+      ejecutar: () => lib().setEstado(lib().estado === "pending" ? "all" : "pending"),
+    },
+    {
+      id: "solo-duplicados",
+      etiqueta: "⇧ D",
+      descripcion: "Filtrar solo los duplicados",
+      grupo: "Biblioteca",
+      test: tecla("d", { shift: true }),
+      ejecutar: () => lib().setEstado(lib().estado === "duplicates" ? "all" : "duplicates"),
+    },
+    {
+      id: "ayuda",
+      etiqueta: "?",
+      descripcion: "Mostrar u ocultar esta ayuda",
+      grupo: "Biblioteca",
+      test: algunaTecla(["?", "h"]),
+      ejecutar: () => ui().alternarAyuda(),
+    },
+  ];
+}

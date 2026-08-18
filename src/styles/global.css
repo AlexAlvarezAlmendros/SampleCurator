@@ -1,0 +1,45 @@
+@import "./tokens.css";
+@import "./reset.css";
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  color: var(--color-text);
+  background: var(--color-bg-app);
+  overflow: hidden; /* la app llena la ventana: nunca hay scroll de página */
+  user-select: none;
+}
+
+/*
+ * El foco SIEMPRE se ve: esta app se conduce con el teclado y esconderlo con el ratón
+ * dejaría al usuario sin saber dónde está.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+::selection {
+  background: var(--color-bg-selected);
+  color: var(--color-text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border: 2px solid var(--color-bg-app);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}

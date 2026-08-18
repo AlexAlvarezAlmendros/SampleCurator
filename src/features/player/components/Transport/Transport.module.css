@@ -1,0 +1,120 @@
+.transporte {
+  display: grid;
+  grid-template-columns: 1fr 280px 132px;
+  gap: var(--space-5);
+  align-items: center;
+  height: var(--transport-height);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.onda {
+  min-width: 0;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.nombre {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--color-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campoNombre {
+  width: 100%;
+  height: 22px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--color-text);
+  background: var(--color-bg-element);
+  border: 1px solid var(--color-text-accent);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.meta {
+  display: flex;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.separador {
+  color: var(--color-text-subtle);
+}
+
+.controles {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 20px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-micro) var(--ease);
+}
+
+.interruptor:hover {
+  color: var(--color-text);
+}
+
+.interruptor[data-activo] {
+  color: var(--color-text-accent);
+  border-color: var(--color-border);
+}
+
+.sesion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.cifra {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.de {
+  color: var(--color-text-subtle);
+}
+
+.barra {
+  width: 100%;
+  height: 2px;
+  background: var(--color-bg-element);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.relleno {
+  height: 100%;
+  background: var(--color-text-accent);
+  transition: width var(--dur-panel) var(--ease);
+}
+
+.etiquetaSesion {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}

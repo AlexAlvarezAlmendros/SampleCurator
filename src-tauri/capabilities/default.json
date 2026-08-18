@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permisos mínimos: diálogo de carpeta y abrir el gestor de archivos. Todo el acceso a disco lo hace el núcleo Rust, no el WebView.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "dialog:allow-open",
+    "opener:allow-reveal-item-in-dir"
+  ]
+}

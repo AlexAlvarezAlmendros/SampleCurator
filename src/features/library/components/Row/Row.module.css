@@ -1,0 +1,74 @@
+.fila {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 4px 1fr 56px 76px auto;
+  align-items: center;
+  gap: var(--space-5);
+  height: var(--row-height);
+  padding-right: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  contain: layout style paint;
+}
+
+/* La alternancia de fondo basta como separación: pesa menos que 100.000 bordes. */
+.fila:nth-child(even) {
+  background: var(--color-bg-surface);
+}
+
+.fila:hover {
+  background: var(--color-bg-hover);
+}
+
+/* La selección NO se anima: a 80 ms se percibe como lentitud, no como suavidad. */
+.fila[data-seleccionada],
+.fila[data-enfocada] {
+  background: var(--color-bg-selected);
+}
+
+.fila[data-decidida] .nombre {
+  color: var(--color-text-subtle);
+}
+
+.indicador {
+  width: 4px;
+  height: 100%;
+  background: transparent;
+}
+
+.fila[data-sonando] .indicador {
+  background: var(--color-text-accent);
+}
+
+.nombre {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.duracion,
+.formato {
+  color: var(--color-text-muted);
+  text-align: right;
+  font-size: var(--text-xs);
+}
+
+.estado {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.hueco {
+  height: 8px;
+  margin-left: var(--space-5);
+  width: 40%;
+  background: var(--color-bg-element);
+  border-radius: var(--radius-sm);
+}

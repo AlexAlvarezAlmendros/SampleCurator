@@ -1,0 +1,30 @@
+.contenedor {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--color-bg-app);
+  contain: strict;
+}
+
+.lienzo {
+  position: relative;
+  width: 100%;
+}
+
+.vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-8);
+  color: var(--color-text-muted);
+  background: var(--color-bg-app);
+  text-align: center;
+}
+
+.vacio p {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}

@@ -1,0 +1,19 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg-app);
+}
+
+/* Tres zonas fijas y sin márgenes exteriores: la ventana se llena entera. */
+.centro {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.lista {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}

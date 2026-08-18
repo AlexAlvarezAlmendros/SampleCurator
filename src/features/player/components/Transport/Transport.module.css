@@ -4,10 +4,17 @@
   gap: var(--space-5);
   align-items: center;
   /*
-   * `min-height`, no `height`: alto fijo con contenido variable acaba recortando siempre.
-   * Pasó de verdad —los tres interruptores se envolvían y «vol 90 %» quedaba cortado— y
-   * volvería con una traducción más larga o una fuente distinta.
+   * Dos cosas, y hacen falta las dos:
+   *
+   * `min-height` en vez de `height`, porque alto fijo con contenido variable recorta siempre.
+   *
+   * Y `flex: 0 0 auto`, que es lo que faltaba: en una columna flex el recorte se reparte
+   * ENTRE los hijos en proporción a su tamaño, así que el transporte también se encogía —
+   * hasta su mínimo de 88 px— mientras su contenido pedía 110. El sobrante lo cortaba el
+   * `overflow: hidden` del body. Con `flex-shrink: 0` el alto lo manda su contenido y es la
+   * lista, que sí puede, la que cede el espacio.
    */
+  flex: 0 0 auto;
   min-height: var(--transport-height);
   padding: var(--space-4) var(--space-5);
   background: var(--color-bg-surface);

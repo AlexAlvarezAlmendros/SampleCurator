@@ -152,10 +152,18 @@ Base **4 px**. Escala: `2 · 4 · 6 · 8 · 12 · 16 · 24 · 32 · 48`.
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-> **Los altos son mínimos, no fijos.** El transporte se declaraba con `height: 88px` y en una
-> ventana de 1362 px los tres interruptores se envolvían a una segunda línea y quedaban
-> cortados por abajo. Alto fijo con contenido variable acaba recortando siempre, y basta una
-> traducción más larga o una fuente distinta para que vuelva a pasar. Se usa `min-height`.
+> **Los altos son mínimos Y el transporte no se encoge.** Hacen falta las dos cosas, y saberlo
+> costó dos intentos:
+>
+> 1. `min-height` en vez de `height`, porque un alto fijo con contenido variable recorta siempre.
+> 2. `flex: 0 0 auto`, que es lo que faltaba. En una columna flex el espacio que falta se
+>    reparte **entre los hijos** en proporción a su tamaño: el transporte también se encogía
+>    —hasta su mínimo— mientras su contenido pedía más, y el sobrante lo cortaba el
+>    `overflow: hidden` del body. Con `flex-shrink: 0` el alto lo manda su contenido y es la
+>    lista, que sí puede, la que cede el espacio.
+>
+> Para comprobarlo sin abrir la app: `./scripts/captura.sh 1362 861` y mirar la imagen. Es la
+> forma de no volver a descubrir un recorte porque alguien mande una captura.
 >
 > La única altura de verdad fija es `--row-height`, y lo es porque el virtualizador necesita
 > ese número exacto para saltar a cualquier posición sin medir. Por eso la densidad configurable

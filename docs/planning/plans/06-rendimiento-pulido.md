@@ -74,9 +74,16 @@ y el contenido se sale de los 88 px de alto fijo. La captura del usuario lo ense
 cortado por la mitad.
 
 La causa no es el ancho concreto, es el patrón: **alto fijo + contenido variable = recorte**, y
-basta con una traducción más larga o una fuente distinta para que vuelva. El alto pasa a ser
-`min-height` —así no puede recortar nunca— y la columna se ensancha para que en el caso normal
-no llegue a envolverse.
+basta con una traducción más larga o una fuente distinta para que vuelva.
+
+**Y el primer arreglo se quedó corto.** Pasar a `min-height` no bastaba: en una columna flex el
+espacio que falta se reparte entre los hijos, así que el transporte seguía encogiéndose hasta su
+mínimo mientras su contenido pedía más, y el sobrante lo cortaba el `overflow: hidden` del body.
+Hacía falta además `flex: 0 0 auto`. Lo delató la segunda captura del usuario, con el
+deslizador de volumen ya dentro haciendo el contenido más alto todavía.
+
+Para que no dependa de que alguien mande una captura, ahora hay `scripts/captura.sh`: sirve
+`dist/` y lo fotografía con Chrome headless al tamaño que se le pida.
 
 ## Aplazado con criterio
 

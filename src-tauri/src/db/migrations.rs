@@ -6,7 +6,10 @@
 use crate::error::Result;
 use rusqlite::Connection;
 
-const MIGRACIONES: &[(&str, &str)] = &[("001_esquema_inicial", ESQUEMA_INICIAL)];
+const MIGRACIONES: &[(&str, &str)] = &[
+    ("001_esquema_inicial", ESQUEMA_INICIAL),
+    ("002_etiquetas", ETIQUETAS),
+];
 
 pub fn aplicar(conn: &mut Connection) -> Result<()> {
     let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
@@ -148,6 +151,28 @@ CREATE TABLE settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+"#;
+
+/// Migración 002 · el conjunto de evaluación de la Fase 8.
+///
+/// Una etiqueta es «lo que sabemos de este sample y de dónde lo sabemos». Hay tres orígenes y
+/// no valen lo mismo: `filename` es barato y masivo pero miente a veces, `user` es la única
+/// verdad sin discusión, y `audio` será lo que estime el clasificador. Guardarlos por separado
+/// —en vez de machacar un único campo— es lo que permite medir el acierto de unos contra otros.
+const ETIQUETAS: &str = r#"
+CREATE TABLE labels (
+  id          INTEGER PRIMARY KEY,
+  sample_id   INTEGER NOT NULL REFERENCES samples(id) ON DELETE CASCADE,
+  field       TEXT    NOT NULL,           -- kind | bpm | key | pitch
+  value       TEXT    NOT NULL,
+  confidence  REAL    NOT NULL DEFAULT 1.0,
+  source      TEXT    NOT NULL,           -- filename | user | audio
+  created_at  INTEGER NOT NULL,
+  UNIQUE (sample_id, field, source)
+);
+
+CREATE INDEX idx_labels_campo  ON labels(field, source);
+CREATE INDEX idx_labels_sample ON labels(sample_id);
 "#;
 
 #[cfg(test)]

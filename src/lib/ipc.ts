@@ -13,12 +13,15 @@ import type {
   AppInfo,
   AudioInfo,
   Destination,
+  LabelReport,
+  LabelStats,
   LibraryPage,
   LibraryQuery,
   LibraryStats,
   PlaybackStarted,
   Project,
   SampleDetail,
+  SampleLabels,
   ScanProgress,
   SessionProgress,
   SourceInfo,
@@ -148,6 +151,22 @@ export const bucle = (looping: boolean): Promise<void> => llamar("player_set_loo
 export const prefetch = (sampleIds: number[]): Promise<void> =>
   llamar("player_prefetch", { sampleIds });
 export const infoAudio = (): Promise<AudioInfo> => llamar("player_info");
+
+// ─────────────────────── etiquetas (Fase 8) ───────────────────────
+
+/** Pasa el extractor de nombres por toda la biblioteca. Idempotente. */
+export const extraerEtiquetas = (): Promise<LabelReport> => llamar("labels_extract_all");
+/** Cuánto coincide la referencia de los nombres con tus correcciones. */
+export const estadisticasEtiquetas = (): Promise<LabelStats> => llamar("labels_stats");
+export const etiquetasDe = (sampleId: number): Promise<SampleLabels> =>
+  llamar("labels_of", { sampleId });
+export const ponerEtiqueta = (sampleId: number, field: string, value: string): Promise<void> =>
+  llamar("labels_set", { sampleId, field, value });
+export const quitarEtiqueta = (sampleId: number, field: string): Promise<void> =>
+  llamar("labels_clear", { sampleId, field });
+/** Muestra estratificada por tipo: sin ella saldrían 150 kicks y ningún tom. */
+export const muestraParaEtiquetar = (perClass: number): Promise<number[]> =>
+  llamar("labels_sampling", { perClass });
 
 // ─────────────────────────── triaje ───────────────────────────
 

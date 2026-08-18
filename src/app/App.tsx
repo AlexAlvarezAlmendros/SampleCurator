@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { LabelPanel } from "../features/labels/components/LabelPanel";
+import { useLabelsStore } from "../features/labels/store";
 import { SampleList } from "../features/library/components/SampleList";
 import { Sidebar } from "../features/library/components/Sidebar";
 import { consultaActual, useLibraryStore } from "../features/library/store";
@@ -18,6 +20,7 @@ import { useUiStore } from "./uiStore";
 
 export function App() {
   const ayudaAbierta = useUiStore((s) => s.ayudaAbierta);
+  const modoEtiquetado = useLabelsStore((s) => s.modo);
   const asistenteAbierto = useUiStore((s) => s.asistenteAbierto);
 
   // ── arranque ────────────────────────────────────────────────
@@ -128,7 +131,7 @@ export function App() {
         <main className={styles.lista}>
           <SampleList />
         </main>
-        <DestinationsPanel />
+        {modoEtiquetado ? <LabelPanel /> : <DestinationsPanel />}
       </div>
       <Transport />
       <StatusBar />

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useLabelsStore } from "../../../features/labels/store";
 import { filaEn, useLibraryStore } from "../../../features/library/store";
 import { usePlayerStore } from "../../../features/player/store";
 import { useTriageStore } from "../../../features/triage/store";
@@ -21,6 +22,10 @@ export function AutoPlay() {
 
     const player = usePlayerStore.getState();
     if (player.autoplay) void player.reproducir(idEnFoco);
+
+    if (useLabelsStore.getState().modo) {
+      void useLabelsStore.getState().cargarDe(idEnFoco);
+    }
 
     // El prefetch y el "recuérdame dónde estaba" van con freno: en un barrido rápido de
     // flechas no tiene sentido pedirlos veinte veces por segundo.

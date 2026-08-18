@@ -16,6 +16,7 @@ pub mod domain;
 pub mod error;
 pub mod fileops;
 pub mod ipc;
+pub mod music;
 pub mod scan;
 
 use std::sync::atomic::AtomicBool;
@@ -94,6 +95,12 @@ pub fn run() {
             ipc::settings::app_info,
             ipc::settings::settings_get,
             ipc::settings::settings_set,
+            ipc::labels::labels_extract_all,
+            ipc::labels::labels_stats,
+            ipc::labels::labels_of,
+            ipc::labels::labels_set,
+            ipc::labels::labels_clear,
+            ipc::labels::labels_sampling,
             ipc::library::library_sources,
             ipc::library::library_add_source,
             ipc::library::library_rescan,

@@ -1,0 +1,32 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+spike/target/
+
+# Bindings generados (se regeneran con cargo test export_bindings)
+# src/bindings.ts   ← se versiona a propósito: sirve de contrato revisable en los diffs
+
+# Datos locales
+*.db
+*.db-wal
+*.db-shm
+.samplecurator/
+.samplecurator-trash/
+
+# Editor / SO
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Claude Code
+.claude/settings.local.json
+.claude/worktrees/

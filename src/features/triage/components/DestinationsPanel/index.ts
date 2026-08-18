@@ -1,0 +1,1 @@
+export { DestinationsPanel } from "./DestinationsPanel";

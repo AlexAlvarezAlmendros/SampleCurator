@@ -1,0 +1,147 @@
+/*
+ * Tokens del sistema de diseño. Implementación literal de docs/DESIGN_SYSTEM.md.
+ *
+ * ESTE ES EL ÚNICO ARCHIVO DEL PROYECTO DONDE PUEDE APARECER UN COLOR LITERAL.
+ * Los componentes usan solo la capa semántica (--color-…) o la de componente.
+ * Hay un hook que lo comprueba en cada edición.
+ *
+ * Tres capas:  primitivos (--gray-11) → semánticos (--color-text-muted) → componente (--row-height)
+ */
+
+:root {
+  /* ── capa 1 · primitivos ────────────────────────────────────────────── */
+  --gray-1: #0b0c0d;
+  --gray-2: #111315;
+  --gray-3: #17191c;
+  --gray-4: #1d2024;
+  --gray-5: #24272c;
+  --gray-6: #2b2f35;
+  --gray-7: #363b42;
+  --gray-8: #454b54;
+  --gray-9: #6b7280;
+  --gray-10: #8b9199;
+  --gray-11: #b4bac1;
+  --gray-12: #e8eaed;
+
+  --accent-4: #12332c;
+  --accent-9: #4dd4ac;
+  --accent-10: #67e6c0;
+
+  --keep-9: #4dd4ac;
+  --reject-9: #e06c6c;
+  --warn-9: #e0b25c;
+
+  --dest-1: #4dd4ac;
+  --dest-2: #5aa9e6;
+  --dest-3: #b58cf0;
+  --dest-4: #e6a35a;
+  --dest-5: #e06c9f;
+  --dest-6: #7ed957;
+  --dest-7: #e0d35c;
+  --dest-8: #5ce0d3;
+  --dest-9: #9aa4b0;
+
+  /* ── capa 2 · semánticos ────────────────────────────────────────────── */
+  --color-bg-app: var(--gray-1);
+  --color-bg-surface: var(--gray-2);
+  --color-bg-element: var(--gray-3);
+  --color-bg-hover: var(--gray-4);
+  --color-bg-active: var(--gray-5);
+  --color-bg-selected: var(--accent-4);
+
+  --color-border-subtle: var(--gray-6);
+  --color-border: var(--gray-7);
+  --color-border-strong: var(--gray-8);
+
+  --color-text: var(--gray-12);
+  --color-text-muted: var(--gray-10);
+  --color-text-subtle: var(--gray-9);
+  --color-text-accent: var(--accent-9);
+  --color-text-inverse: var(--gray-1);
+
+  --color-focus-ring: var(--accent-9);
+  --color-waveform: var(--accent-9);
+  --color-waveform-idle: var(--gray-8);
+  --color-playhead: var(--gray-12);
+
+  /* Velo de los overlays. Es el único negro semitransparente de la app. */
+  --color-overlay-scrim: rgb(0 0 0 / 55%);
+
+  --color-keep: var(--keep-9);
+  --color-reject: var(--reject-9);
+  --color-warn: var(--warn-9);
+
+  /* ── capa 3 · componente ────────────────────────────────────────────── */
+  --row-height: 28px;
+  --waveform-height: 72px;
+  --sidebar-width: 232px;
+  --destinations-width: 244px;
+  --transport-height: 88px;
+  --header-height: 34px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 24px;
+  --space-8: 32px;
+
+  --font-ui: "Inter", "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+  --text-2xl: 24px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-micro: 80ms;
+  --dur-panel: 140ms;
+
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 50%);
+}
+
+/*
+ * Tema claro: se redefine SOLO la capa semántica. Ningún componente sabe en qué tema está.
+ */
+:root[data-theme="light"] {
+  --gray-1: #fbfbfc;
+  --gray-2: #f3f4f6;
+  --gray-3: #eceef1;
+  --gray-4: #e3e6ea;
+  --gray-5: #d9dde2;
+  --gray-6: #cbd0d7;
+  --gray-7: #b3bac3;
+  --gray-8: #949ca7;
+  --gray-9: #6b7280;
+  --gray-10: #545c66;
+  --gray-11: #3a414a;
+  --gray-12: #14171a;
+
+  --accent-4: #d3f3e9;
+  --accent-9: #0e9c74;
+  --accent-10: #0b7f5e;
+
+  --keep-9: #0e9c74;
+  --reject-9: #c14a4a;
+  --warn-9: #a8752a;
+
+  --color-text-inverse: var(--gray-1);
+  --color-overlay-scrim: rgb(0 0 0 / 28%);
+  --shadow-overlay: 0 8px 32px rgb(0 0 0 / 18%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 0ms;
+    --dur-panel: 0ms;
+  }
+}

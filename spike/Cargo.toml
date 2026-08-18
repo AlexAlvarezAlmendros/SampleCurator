@@ -1,0 +1,25 @@
+[package]
+name = "spike"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Código desechable: mide si la premisa de SampleCurator se sostiene en esta máquina."
+
+# Crate aislado: no debe entrar en el workspace de la app cuando exista src-tauri/.
+[workspace]
+
+[dependencies]
+anyhow = "1"
+cpal = "0.15"
+symphonia = { version = "0.5", features = ["all"] }
+rtrb = "0.3"
+rayon = "1"
+jwalk = "0.8"
+rusqlite = { version = "0.32", features = ["bundled"] }
+blake3 = "1"
+hound = "3"
+crossterm = "0.28"
+
+[profile.release]
+opt-level = 3
+debug = true

@@ -203,26 +203,34 @@ import * as ipc from "../lib/ipc";
 import { App } from "./App";
 import { useUiStore } from "./uiStore";
 
+/**
+ * Los stores de zustand viven en el módulo y sobreviven a los tests. Reiniciar «los campos que
+ * toca este test» es una trampa: en cuanto cambia el orden, algo se filtra. Se guarda el estado
+ * inicial completo de cada uno y se restaura entero.
+ */
+const INICIALES = {
+  ui: useUiStore.getState(),
+  lib: useLibraryStore.getState(),
+  labels: useLabelsStore.getState(),
+  meta: useMetaStore.getState(),
+  player: usePlayerStore.getState(),
+  trash: useTrashStore.getState(),
+};
+
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Los stores de zustand viven en el módulo: sin reiniciarlos, un test hereda el modo
-    // que dejó encendido el anterior.
-    useLabelsStore.setState({ modo: false, etiquetas: null, stats: null, cola: [] });
-    useUiStore.setState({ ajustesAbiertos: false, ayudaAbierta: false, densidad: "normal" });
-    useMetaStore.setState({ modo: false, detalle: null, catalogo: [] });
-    useTrashStore.setState({ abierta: false, entradas: [], cargando: false });
-    usePlayerStore.setState({ volumen: 0.9, silenciado: false });
+    useUiStore.setState(INICIALES.ui, true);
+    useLibraryStore.setState(INICIALES.lib, true);
+    useLabelsStore.setState(INICIALES.labels, true);
+    useMetaStore.setState(INICIALES.meta, true);
+    usePlayerStore.setState(INICIALES.player, true);
+    useTrashStore.setState(INICIALES.trash, true);
     document.documentElement.style.removeProperty("--row-height");
-    useLibraryStore.setState({
-      fuentes: [],
-      total: 0,
-      paginas: new Map(),
-      cargando: new Set(),
-      foco: 0,
-      seleccion: new Set(),
-      ancla: null,
-    });
+    document.documentElement.removeAttribute("data-theme");
+    // `clearAllMocks` borra las llamadas pero NO las implementaciones puestas con
+    // `mockResolvedValue` dentro de un test: hay que devolver la de por defecto a mano.
+    vi.mocked(ipc.listarPapelera).mockResolvedValue([]);
   });
 
   it("se monta y pinta las tres zonas y el transporte", async () => {

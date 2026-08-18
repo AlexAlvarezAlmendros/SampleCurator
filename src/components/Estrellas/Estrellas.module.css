@@ -1,0 +1,29 @@
+.estrellas {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  line-height: 1;
+}
+
+.estrella {
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--color-border-strong);
+  transition: color var(--dur-micro) var(--ease);
+}
+
+.estrella[data-puesta] {
+  color: var(--color-warn);
+}
+
+.estrellas[data-tamano="grande"] .estrella {
+  font-size: var(--text-lg);
+}
+
+.estrellas[data-editable] .estrella {
+  cursor: pointer;
+}
+
+.estrellas[data-editable] .estrella:hover {
+  color: var(--color-warn);
+}

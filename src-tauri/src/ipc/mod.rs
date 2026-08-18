@@ -5,6 +5,7 @@
 
 pub mod labels;
 pub mod library;
+pub mod meta;
 pub mod player;
 pub mod settings;
 pub mod triage;

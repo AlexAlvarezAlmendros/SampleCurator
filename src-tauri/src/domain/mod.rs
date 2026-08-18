@@ -79,6 +79,7 @@ pub struct SampleDetail {
     #[ts(type = "number | null")]
     pub bit_depth: Option<i64>,
     pub tags: Vec<String>,
+    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -123,6 +124,13 @@ pub struct LibraryQuery {
     /// Valoración mínima (0 = sin filtrar).
     #[ts(type = "number")]
     pub min_rating: i64,
+    /// Solo los que aún no tienes valorados.
+    pub unrated: bool,
+    /// Solo los enviados a este destino.
+    #[ts(type = "number | null")]
+    pub dest_id: Option<i64>,
+    /// Solo los que llevan esta etiqueta.
+    pub tag: Option<String>,
     #[ts(type = "number")]
     pub offset: i64,
     #[ts(type = "number")]
@@ -639,4 +647,25 @@ pub struct LabelStats {
     pub labeled_samples: i64,
     #[ts(type = "number")]
     pub target: i64,
+}
+
+/// Una entrada de la papelera. Puede haber archivos sin fila en el índice —si se quitó la
+/// carpeta de origen— y por eso `sample_id` es opcional: se restauran igual.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct TrashEntry {
+    #[ts(type = "number | null")]
+    pub sample_id: Option<i64>,
+    pub filename: String,
+    pub trash_path: String,
+    pub original_path: String,
+    #[ts(type = "number")]
+    pub at: i64,
+    #[ts(type = "number")]
+    pub size: i64,
+    #[ts(type = "number | null")]
+    pub duration_ms: Option<i64>,
+    /// `false` cuando el archivo está en la papelera pero ya no hay fila que actualizar.
+    pub in_index: bool,
 }

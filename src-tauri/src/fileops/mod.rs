@@ -551,6 +551,134 @@ fn estado_tras(a: &triage::AccionFila) -> (SampleStatus, Option<String>) {
     }
 }
 
+// ─────────────────────────── papelera ───────────────────────────
+
+/// Lo que hay en la papelera, cruzado con el índice para poder enseñarlo con su duración.
+pub fn papelera(db: &Db, project_id: i64) -> Result<Vec<TrashEntry>> {
+    let proyecto = db.read(|c| triage::project(c, project_id))?;
+    let raiz = PathBuf::from(&proyecto.dest_root);
+    let anotaciones = trash::entradas(&raiz);
+
+    let mut salida = Vec::with_capacity(anotaciones.len());
+    for a in anotaciones {
+        let ruta = PathBuf::from(&a.to);
+        let size = std::fs::metadata(&ruta)
+            .map(|m| m.len() as i64)
+            .unwrap_or(0);
+        let filename = nombre_de(&ruta);
+
+        // El sample puede no estar ya en el índice: si se quitó su carpeta de origen, la fila
+        // desapareció pero el archivo sigue en la papelera y hay que poder devolverlo.
+        let del_indice = if a.sample_id > 0 {
+            db.read(|c| queries::detail(c, a.sample_id)).ok()
+        } else {
+            None
+        };
+
+        salida.push(TrashEntry {
+            sample_id: del_indice.as_ref().map(|d| d.row.id),
+            filename,
+            trash_path: a.to.clone(),
+            original_path: a.from.clone(),
+            at: a.at,
+            size,
+            duration_ms: del_indice.as_ref().and_then(|d| d.row.duration_ms),
+            in_index: del_indice.is_some(),
+        });
+    }
+    Ok(salida)
+}
+
+/// Devuelve un archivo de la papelera a su ruta original.
+///
+/// Mismo orden que cualquier otra operación: journal, disco, cierre. Y si en su sitio hay ya
+/// otro archivo, no se sobrescribe: se restaura al lado con sufijo.
+pub fn restaurar(db: &Db, project_id: i64, trash_path: &str) -> Result<i64> {
+    let proyecto = db.read(|c| triage::project(c, project_id))?;
+    let raiz = PathBuf::from(&proyecto.dest_root);
+
+    let anotacion = trash::entradas(&raiz)
+        .into_iter()
+        .find(|a| a.to == trash_path)
+        .ok_or_else(|| AppError::NotFound("esa entrada ya no está en la papelera".into()))?;
+
+    if anotacion.from.is_empty() {
+        return Err(AppError::Unsafe(
+            "ese archivo no tiene anotada su ruta original, así que no se sabe dónde devolverlo"
+                .into(),
+        ));
+    }
+
+    let desde = PathBuf::from(&anotacion.to);
+    let original = PathBuf::from(&anotacion.from);
+    let Some(dir) = original.parent() else {
+        return Err(AppError::PathUnavailable(original));
+    };
+    std::fs::create_dir_all(dir)?;
+    let hasta = mover::ruta_libre(dir, &nombre_de(&original), &HashSet::new());
+
+    let lote = nuevo_lote();
+    let sample_id = if anotacion.sample_id > 0 {
+        Some(anotacion.sample_id)
+    } else {
+        None
+    };
+
+    let action_id = match sample_id {
+        Some(sid) => db.write(|conn| {
+            let tx = conn.transaction()?;
+            let prev = triage::sample_state(&tx, sid)?;
+            let id = triage::begin_action(
+                &tx,
+                Some(project_id),
+                sid,
+                None,
+                ActionKind::Move,
+                &desde.to_string_lossy(),
+                &hasta.to_string_lossy(),
+                prev.status,
+                prev.dest_id,
+                prev.current_path.as_deref(),
+                &lote,
+            )?;
+            tx.commit()?;
+            Ok(Some(id))
+        })?,
+        None => None,
+    };
+
+    if let Err(e) = mover::mover(&desde, &hasta) {
+        if let (Some(id), true) = (action_id, action_id.is_some()) {
+            db.write(|conn| {
+                let tx = conn.transaction()?;
+                triage::drop_action(&tx, id)?;
+                tx.commit()?;
+                Ok(())
+            })?;
+        }
+        return Err(e);
+    }
+
+    if let (Some(sid), Some(aid)) = (sample_id, action_id) {
+        db.write(|conn| {
+            let tx = conn.transaction()?;
+            // Vuelve a la cola: restaurar es deshacer una decisión, no tomar otra.
+            let current = if hasta == original {
+                None
+            } else {
+                Some(hasta.to_string_lossy().to_string())
+            };
+            triage::set_sample_state(&tx, sid, SampleStatus::Pending, None, current.as_deref())?;
+            triage::finish_action(&tx, aid)?;
+            tx.commit()?;
+            Ok(())
+        })?;
+    }
+
+    trash::olvidar(&raiz, trash_path)?;
+    Ok(sample_id.unwrap_or(0))
+}
+
 // ─────────────────────────── reparación al arrancar ───────────────────────────
 
 /// Cierra las acciones que quedaron a medias. Ante la duda, conserva el original.

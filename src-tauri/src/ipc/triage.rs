@@ -249,6 +249,26 @@ pub async fn triage_trash_summary(
     })
 }
 
+/// Lo que hay en la papelera, con lo que hace falta para decidir sin salir de la app.
+#[tauri::command]
+pub async fn trash_list(estado: State<'_, Estado>, project_id: i64) -> Result<Vec<TrashEntry>> {
+    fileops::papelera(&estado.db, project_id)
+}
+
+/// Devuelve un archivo de la papelera a su carpeta original y lo pone otra vez en la cola.
+#[tauri::command]
+pub async fn trash_restore(
+    estado: State<'_, Estado>,
+    project_id: i64,
+    trash_path: String,
+) -> Result<i64> {
+    let id = fileops::restaurar(&estado.db, project_id, &trash_path)?;
+    if id > 0 {
+        olvidar_movidos(&estado, &[id]);
+    }
+    Ok(id)
+}
+
 /// La única operación irreversible de la app. El frontend la confirma con un diálogo, y es el
 /// único diálogo de confirmación que existe.
 #[tauri::command]

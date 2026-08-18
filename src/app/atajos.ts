@@ -6,11 +6,13 @@ import { TECLAS_TIPO, useLabelsStore } from "../features/labels/store";
  * El bucle entero es: navegar con ↓/↑ (suena solo), decidir con 1…9 o X, deshacer con Ctrl+Z.
  */
 import { filaEn, useLibraryStore } from "../features/library/store";
+import { useMetaStore } from "../features/meta/store";
 import { usePlayerStore } from "../features/player/store";
 import { useTriageStore } from "../features/triage/store";
+import { useTrashStore } from "../features/triage/store.papelera";
 import * as ipc from "../lib/ipc";
 import type { Atajo } from "../lib/keymap";
-import { algunaTecla, esDigito1a9, tecla } from "../lib/keymap";
+import { algunaTecla, digitoConAlt, esDigito1a9, tecla, teclaIgnorandoShift } from "../lib/keymap";
 import { useUiStore } from "./uiStore";
 
 function idEnFoco(): number | null {
@@ -231,7 +233,7 @@ function atajosTriaje(): Atajo[] {
       etiqueta: "+",
       descripcion: "Subir el volumen",
       grupo: "Escucha",
-      test: algunaTecla(["+", "="]),
+      test: teclaIgnorandoShift(["+", "=", "add"]),
       ejecutar: () => player().ajustarVolumen(0.1),
     },
     {
@@ -239,7 +241,7 @@ function atajosTriaje(): Atajo[] {
       etiqueta: "−",
       descripcion: "Bajar el volumen",
       grupo: "Escucha",
-      test: tecla("-"),
+      test: teclaIgnorandoShift(["-", "subtract"]),
       ejecutar: () => player().ajustarVolumen(-0.1),
     },
     {
@@ -294,6 +296,20 @@ function atajosTriaje(): Atajo[] {
       grupo: "Decisión",
       test: tecla("z", { ctrl: true, shift: true }),
       ejecutar: () => triage().rehacer(),
+    },
+    {
+      id: "valorar",
+      etiqueta: "Alt+1…5",
+      descripcion: "Poner de una a cinco estrellas (Alt+0 las quita)",
+      grupo: "Decisión",
+      test: digitoConAlt,
+      ejecutar: async (e) => {
+        const id = idEnFoco();
+        if (id === null) return;
+        const estrellas = Number.parseInt(e.key, 10);
+        await ipc.valorar(id, estrellas);
+        lib().parchear(id, { rating: estrellas });
+      },
     },
     {
       id: "favorito",
@@ -378,6 +394,10 @@ function atajosTriaje(): Atajo[] {
       test: tecla("escape"),
       ejecutar: () => {
         const u = ui();
+        if (useTrashStore.getState().abierta) {
+          useTrashStore.getState().cerrar();
+          return;
+        }
         if (u.ajustesAbiertos) {
           u.setAjustes(false);
           return;
@@ -442,6 +462,22 @@ function atajosTriaje(): Atajo[] {
       grupo: "Biblioteca",
       test: tecla("d", { shift: true }),
       ejecutar: () => lib().setEstado(lib().estado === "duplicates" ? "all" : "duplicates"),
+    },
+    {
+      id: "papelera",
+      etiqueta: "⇧ X",
+      descripcion: "Abrir la papelera: escuchar y restaurar lo rechazado",
+      grupo: "Decisión",
+      test: tecla("x", { shift: true }),
+      ejecutar: () => useTrashStore.getState().abrir(),
+    },
+    {
+      id: "inspector",
+      etiqueta: "I",
+      descripcion: "Inspector: etiquetas, notas y valoración del sample enfocado",
+      grupo: "Biblioteca",
+      test: tecla("i"),
+      ejecutar: () => useMetaStore.getState().alternarModo(),
     },
     {
       id: "modo-etiquetado",

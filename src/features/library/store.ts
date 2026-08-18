@@ -26,6 +26,9 @@ interface LibraryState {
   orden: SortBy;
   duracion: "todo" | "oneshots" | "loops";
   minValoracion: number;
+  sinValorar: boolean;
+  destinoFiltro: number | null;
+  etiquetaFiltro: string | null;
 
   total: number;
   paginas: Map<number, SampleRow[]>;
@@ -49,6 +52,9 @@ interface LibraryState {
   setOrden: (o: SortBy) => Promise<void>;
   setDuracion: (d: "todo" | "oneshots" | "loops") => Promise<void>;
   setMinValoracion: (v: number) => Promise<void>;
+  setSinValorar: (v: boolean) => Promise<void>;
+  setDestinoFiltro: (id: number | null) => Promise<void>;
+  setEtiquetaFiltro: (t: string | null) => Promise<void>;
   refrescar: (conservarFoco?: boolean) => Promise<void>;
   asegurarRango: (inicio: number, fin: number) => void;
   mover: (delta: number, extender?: boolean) => void;
@@ -72,6 +78,9 @@ export function consultaActual(s: LibraryState, offset: number, limit: number): 
     minDurationMs: s.duracion === "loops" ? CORTE_LOOP_MS : null,
     maxDurationMs: s.duracion === "oneshots" ? CORTE_LOOP_MS : null,
     minRating: s.minValoracion,
+    unrated: s.sinValorar,
+    destId: s.destinoFiltro,
+    tag: s.etiquetaFiltro,
     offset,
     limit,
   };
@@ -106,6 +115,9 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   orden: "path",
   duracion: "todo",
   minValoracion: 0,
+  sinValorar: false,
+  destinoFiltro: null,
+  etiquetaFiltro: null,
 
   total: 0,
   paginas: new Map(),
@@ -202,7 +214,23 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   },
 
   async setMinValoracion(v) {
-    set({ minValoracion: v });
+    // «Sin valorar» y «★N o más» se excluyen: pedir las dos a la vez no devolvería nada.
+    set({ minValoracion: v, sinValorar: false });
+    await get().refrescar();
+  },
+
+  async setSinValorar(v) {
+    set({ sinValorar: v, minValoracion: 0 });
+    await get().refrescar();
+  },
+
+  async setDestinoFiltro(id) {
+    set({ destinoFiltro: id });
+    await get().refrescar();
+  },
+
+  async setEtiquetaFiltro(t) {
+    set({ etiquetaFiltro: t });
     await get().refrescar();
   },
 

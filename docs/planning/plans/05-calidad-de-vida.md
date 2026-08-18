@@ -19,7 +19,7 @@
 |---|-------|--------|-------|
 | 5.1 | Detección de duplicados por `content_hash` con chip `dup` en la fila | ✅ Hecho | Chip `dup` en la fila, calculado con un EXISTS sobre el índice de hash |
 | 5.2 | Filtro `⇧D` (solo duplicados) y acción "conservar el mejor" (mayor tasa/profundidad) | 🔄 Parcial | El filtro ⇧D está; «conservar el mejor» automático, no |
-| 5.3 | Filtros por duración, sample rate, canales, estado y valoración | 🔄 Parcial | Duración (one-shots / loops) y valoración (★3+/★5). Frecuencia y canales, no |
+| 5.3 | Filtros por duración, sample rate, canales, estado y valoración | 🔄 Parcial | Duración y valoración hechos; destino y etiqueta pasan a la [Fase 9](09-metadatos-valoracion-papelera.md) |
 | 5.4 | Filtros combinables con chips visibles y `Esc` para limpiar | 🔄 Parcial | Los filtros se combinan y se ven activos; falta el chip que los resuma |
 | 5.5 | Orden por nombre, duración, fecha, loudness y aleatorio | ✅ Hecho | Ruta, nombre, duración, tamaño, volumen y recientes (aleatorio no) |
 | 5.6 | Paleta de comandos `Ctrl+K` (todas las acciones, con sus teclas) | 🔒 | 1.16 |
@@ -41,7 +41,7 @@ sus objetivos de acierto numéricos y su conjunto de evaluación.
 |---|-------|--------|-------|
 | 5.11 | Renombrar en línea (`F2`) con actualización del índice y del journal | ✅ Hecho | F2 renombra EN la barra de transporte, y Ctrl+Z también deshace el renombrado |
 | 5.12 | Renombrado por patrón para un lote (`{destino}_{n:03}`) | 🔒 | 5.11 |
-| 5.13 | Etiquetas libres con autocompletado, indexadas en FTS | 🔒 | 2.10 |
+| 5.13 | Etiquetas libres con autocompletado, indexadas en FTS | ➡️ Movida | Se hace en la [Fase 9](09-metadatos-valoracion-papelera.md) |
 | 5.14 | Comparación A/B entre dos samples con `Ctrl+B` | 🔒 | 3.11 |
 | 5.15 | `Ctrl+R`: revelar en el explorador de archivos del sistema | ✅ Hecho | Ctrl+R vía tauri-plugin-opener |
 

@@ -124,3 +124,28 @@
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
+
+.volumen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+ * El deslizador es el control que faltaba: antes lo único visible era un botón que decía
+ * «vol 90 %» y lo que hacía al pulsarlo era SILENCIAR.
+ */
+.deslizador {
+  width: 68px;
+  height: 14px;
+  accent-color: var(--color-text-accent);
+  cursor: pointer;
+}
+
+.porcentaje {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  min-width: 30px;
+  text-align: right;
+}

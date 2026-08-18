@@ -1,0 +1,1 @@
+export { Estrellas } from "./Estrellas";

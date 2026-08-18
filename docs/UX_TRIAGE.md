@@ -75,8 +75,9 @@ retoma en el mismo sample donde lo dejaste.
 | `1` … `9` | Enviar al destino N y avanzar |
 | `X` / `Supr` | Rechazar → papelera y avanzar |
 | `Enter` | Marcar como conservado *en su sitio* y avanzar |
-| `F` | Favorito (⭐) sin mover |
-| `1`…`5` con `⌥` | Valoración de 1 a 5 |
+| `F` | Favorito (cinco estrellas) sin mover |
+| `Alt+1`…`Alt+5` | Poner de una a cinco estrellas · `Alt+0` las quita |
+| `⇧ X` | Abrir la papelera: escuchar y restaurar lo rechazado |
 | `Ctrl+Z` | Deshacer la última acción (devuelve el archivo y el foco) |
 | `Ctrl+⇧+Z` | Rehacer |
 
@@ -100,6 +101,7 @@ retoma en el mismo sample donde lo dejaste.
 | `Ctrl+E` | Guardar las decisiones en `<destino>/library.json` |
 | `T` | Cambiar entre tema oscuro y claro |
 | `Ctrl+,` | Ajustes: carpetas, apariencia, escucha, papelera e información |
+| `I` | Inspector: etiquetas, notas y valoración del sample enfocado |
 | `?` | Ver el mapa de teclas completo |
 
 El mapa vive en un único sitio declarativo (`src/app/atajos.ts`), y la pantalla de ayuda (`?`)
@@ -153,6 +155,35 @@ decisiones tomadas sobre esos samples, porque el índice es donde viven.
 
 Reescanear respeta el triaje: lo que hayas movido a un destino sigue donde lo pusiste y no
 reaparece como pendiente.
+
+## 4.ter Describir un sample, y encontrarlo por eso
+
+El inspector (`I`) ocupa el sitio del panel de destinos y trae todo lo que se puede decir de un
+sample: **valoración** por estrellas, **etiquetas** libres con autocompletado, **notas** de texto
+y sus datos técnicos.
+
+> **Nada de esto toca el archivo.** Vive en el índice. Escribir etiquetas dentro del `.wav`
+> obligaría a reescribir tus archivos —con su copia de seguridad, su verificación y su vuelta
+> atrás— y los DAW mayormente las ignoran en samples. Si algún día hace falta, se añade encima
+> sin tirar nada de esto.
+
+Y lo que se puede decir, se puede buscar. La barra lateral filtra por **destino**, por
+**estrellas** (de una a cinco, o «sin valorar») y por **etiqueta**, y todo se combina con el
+filtro de estado, el de duración y la búsqueda por texto.
+
+## 4.quater La papelera, ahora visible
+
+`⇧X` abre la papelera. Existía desde el primer día —lo rechazado nunca se borra, va a
+`<destino>/.samplecurator-trash/` con un manifiesto— pero hasta ahora la única forma de
+recuperar algo era pulsar `Ctrl+Z` en el momento.
+
+Desde la papelera se puede **escuchar** lo rechazado antes de decidir y **devolverlo a su carpeta
+original** de uno en uno. Si mientras tanto otro archivo ha ocupado su sitio, el restaurado se
+coloca al lado con sufijo: nunca se sobrescribe nada.
+
+Un archivo que aparezca en la papelera sin pasar por la app (copiado a mano, manifiesto perdido)
+se lista igual, pero no se puede restaurar: sin saber de dónde venía, elegirle un destino sería
+inventárselo.
 
 ## 5. Estados vacíos y errores
 

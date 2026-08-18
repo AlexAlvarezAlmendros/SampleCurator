@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Chip } from "../../../../components/Chip";
+import { Estrellas } from "../../../../components/Estrellas";
 import { canales, duracion, hz, truncarCentro } from "../../../../lib/format";
 import { usePlayerStore } from "../../../player/store";
 import { filaEn, useLibraryStore } from "../../store";
@@ -61,7 +62,7 @@ function RowImpl({ indice, desplazamiento }: RowProps) {
         {fila.analyzed ? `${hz(fila.sampleRate)} ${canales(fila.channels)}` : "…"}
       </span>
       <span className={styles.estado}>
-        {fila.rating >= 5 && <Chip tono="acento">★</Chip>}
+        <Estrellas valor={fila.rating} />
         {fila.duplicate && <Chip tono="warn">dup</Chip>}
         {fila.status === "rejected" && <Chip tono="reject">papelera</Chip>}
         {fila.destination !== null && <Chip tono="keep">{fila.destination}</Chip>}

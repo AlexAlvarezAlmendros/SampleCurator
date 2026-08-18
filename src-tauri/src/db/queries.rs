@@ -240,6 +240,21 @@ fn construir_filtro(q: &LibraryQuery) -> Filtro {
         condiciones.push("s.rating >= ?".into());
         params.push(Value::Integer(q.min_rating));
     }
+    if q.unrated {
+        condiciones.push("s.rating = 0".into());
+    }
+    if let Some(dest) = q.dest_id {
+        condiciones.push("s.dest_id = ?".into());
+        params.push(Value::Integer(dest));
+    }
+    if let Some(etiqueta) = q.tag.as_deref() {
+        condiciones.push(
+            "EXISTS (SELECT 1 FROM sample_tags st JOIN tags t ON t.id = st.tag_id
+                     WHERE st.sample_id = s.id AND t.name = ?)"
+                .into(),
+        );
+        params.push(Value::Text(crate::db::tags::normalizar(etiqueta)));
+    }
     if let Some(texto) = q.search.as_deref().and_then(expresion_fts) {
         join.push_str(" JOIN samples_fts f ON f.rowid = s.id ");
         condiciones.push("samples_fts MATCH ?".into());
@@ -404,7 +419,7 @@ pub fn peaks(conn: &Connection, id: i64) -> Result<Vec<u8>> {
 
 pub fn detail(conn: &Connection, id: i64) -> Result<SampleDetail> {
     let sql = format!(
-        "SELECT {COLUMNAS_FILA}, {ABS}, s.loudness_db, s.bit_depth
+        "SELECT {COLUMNAS_FILA}, {ABS}, s.loudness_db, s.bit_depth, s.notes
          FROM samples s
          JOIN sources so ON so.id = s.source_id
          LEFT JOIN destinations d ON d.id = s.dest_id
@@ -419,10 +434,13 @@ pub fn detail(conn: &Connection, id: i64) -> Result<SampleDetail> {
                 loudness_db: r.get(14)?,
                 bit_depth: r.get(15)?,
                 tags: Vec::new(),
+                notes: r.get(16)?,
             })
         })
         .optional()?;
-    d.ok_or_else(|| AppError::NotFound(format!("sample {id}")))
+    let mut d = d.ok_or_else(|| AppError::NotFound(format!("sample {id}")))?;
+    d.tags = crate::db::tags::de_sample(conn, id)?;
+    Ok(d)
 }
 
 pub fn set_rating(conn: &Connection, id: i64, rating: i64) -> Result<()> {

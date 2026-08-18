@@ -107,14 +107,33 @@ export function Transport() {
           >
             autoplay <Kbd>⇧ A</Kbd>
           </button>
-          <button
-            type="button"
-            className={styles.interruptor}
-            data-activo={silenciado || undefined}
-            onClick={() => void usePlayerStore.getState().alternarSilencio()}
-          >
-            {silenciado ? "silenciado" : `vol ${Math.round(volumen * 100)}%`} <Kbd>S</Kbd>
-          </button>
+          <div className={styles.volumen}>
+            <button
+              type="button"
+              className={styles.interruptor}
+              data-activo={silenciado || undefined}
+              onClick={() => void usePlayerStore.getState().alternarSilencio()}
+              title={silenciado ? "Reanudar" : "Silenciar"}
+            >
+              {silenciado ? "🔇" : "🔊"} <Kbd>S</Kbd>
+            </button>
+            <input
+              className={styles.deslizador}
+              type="range"
+              min={0}
+              max={150}
+              step={5}
+              value={Math.round(volumen * 100)}
+              onChange={(e) =>
+                void usePlayerStore
+                  .getState()
+                  .ponerVolumen(Number.parseInt(e.target.value, 10) / 100)
+              }
+              aria-label="Volumen"
+              title={`Volumen ${Math.round(volumen * 100)} %`}
+            />
+            <span className={styles.porcentaje}>{Math.round(volumen * 100)}%</span>
+          </div>
         </div>
       </div>
 

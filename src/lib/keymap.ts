@@ -41,6 +41,24 @@ export function algunaTecla(nombres: string[], mods: Mods = {}) {
   return (e: KeyboardEvent): boolean => tests.some((t) => t(e));
 }
 
+/**
+ * Como `algunaTecla`, pero sin mirar el Shift.
+ *
+ * Hace falta para el volumen: el `+` se escribe con Shift en muchas distribuciones, así que
+ * exigir `shiftKey === false` hacía que el atajo no disparara nunca. Lo que importa es el
+ * carácter que llega, no cómo lo produzca tu teclado.
+ */
+export function teclaIgnorandoShift(nombres: string[]) {
+  const objetivos = nombres.map((n) => n.toLowerCase());
+  return (e: KeyboardEvent): boolean =>
+    objetivos.includes(e.key.toLowerCase()) && !e.ctrlKey && !e.metaKey && !e.altKey;
+}
+
+/** Dígito con Alt: se usa para la valoración (Alt+3 = tres estrellas). */
+export function digitoConAlt(e: KeyboardEvent): boolean {
+  return e.key >= "0" && e.key <= "5" && e.altKey && !e.ctrlKey && !e.metaKey;
+}
+
 export function esDigito1a9(e: KeyboardEvent): boolean {
   return e.key >= "1" && e.key <= "9" && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;
 }

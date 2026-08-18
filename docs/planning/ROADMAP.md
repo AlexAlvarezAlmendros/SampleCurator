@@ -14,6 +14,7 @@
 | 5 | Calidad de vida | 🔄 Parcial | [05-calidad-de-vida.md](plans/05-calidad-de-vida.md) | Duplicados, filtros, renombrar, atajos configurables, BPM/tonalidad |
 | 6 | Rendimiento y pulido | ✅ Hecho | [06-rendimiento-pulido.md](plans/06-rendimiento-pulido.md) | Todos los presupuestos de `docs/PERFORMANCE.md` verdes |
 | 7 | Empaquetado | ✅ Hecho | [07-empaquetado.md](plans/07-empaquetado.md) | AppImage + .deb instalables, con actualizador |
+| 8 | Clasificación automática | ⬜ Listo | [08-clasificacion-automatica.md](plans/08-clasificacion-automatica.md) | Tipo, BPM y tonalidad **medidos** contra material real etiquetado (**GATE en 8.0**) |
 
 ## Estado
 
@@ -25,11 +26,16 @@ samples reales y con todos los presupuestos de rendimiento en verde.
 - 98 tests: 66 en Rust (incluidos 12 de integración sobre archivos reales) y 32 en el frontend.
 - `clippy -D warnings`, `biome check` y `tsc` limpios.
 
+**Siguiente paso planificado:** la [Fase 8](plans/08-clasificacion-automatica.md) añade tipo, BPM
+y tonalidad como etiquetas y filtros. El clasificador **no mueve nada**: etiqueta, y el humano
+sigue decidiendo con su tecla. Empieza por un gate (8.0) que construye el conjunto de evaluación
+antes que el clasificador, porque sin verdad de referencia no hay forma de saber si acierta.
+
 **Lo que queda abierto**, con su motivo, en cada plan:
 
 | Qué | Dónde | Motivo |
 |---|---|---|
-| BPM, tonalidad y clasificación automática | [Fase 5](plans/05-calidad-de-vida.md) | Es DSP de verdad; merece su fase y sus tests contra material etiquetado |
+| BPM, tonalidad y clasificación automática | [Fase 8](plans/08-clasificacion-automatica.md) | **Ya planificada.** Fase propia con gate: primero el conjunto de evaluación, después el DSP |
 | Etiquetas, paleta de comandos, A/B, atajos configurables | Fase 5 | Mejoras; el bucle ya cierra sin ellas |
 | Mini-onda por fila y benches en criterion | [Fase 6](plans/06-rendimiento-pulido.md) | Necesitan una columna de picos reducidos y un canal binario por página |
 | Actualizador automático | [Fase 7](plans/07-empaquetado.md) | **Bloqueado**: hacen falta tus claves de firma y decidir dónde se publican las releases |

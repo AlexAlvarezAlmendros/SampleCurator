@@ -64,6 +64,7 @@ docs/
       05-calidad-de-vida.md          ← Fase 5: duplicados, filtros, BPM/tono
       06-rendimiento-pulido.md       ← Fase 6: presupuestos verdes, tema claro
       07-empaquetado.md              ← Fase 7: AppImage, .deb, actualizador
+      08-clasificacion-automatica.md ← Fase 8: tipo, BPM y tonalidad (GATE en 8.0)
 ```
 
 ---
@@ -147,8 +148,10 @@ Créala solo si no existe (el repo ya trae una; respeta su formato):
 - Nunca marques `🔄 En curso` una tarea con dependencias abiertas.
 - Al cerrar una tarea, actualiza en el acto las que desbloqueaba.
 - **Cross-fase:** la Fase N no empieza hasta cumplir el hito de la N-1.
-- **Fase 4 es el corte útil:** al terminarla la app ya resuelve el problema. Las fases 5-7 son
+- **Fase 4 es el corte útil:** al terminarla la app ya resuelve el problema. Las fases 5-8 son
   mejora. Si el usuario quiere parar ahí, es una decisión legítima, no una fase incompleta.
+- **La Fase 8 tiene su propio gate (8.0):** no se escribe ni un estimador de BPM o tonalidad
+  hasta que exista el conjunto de evaluación y se haya medido cuánto miente la referencia débil.
 
 ## Reglas propias de este proyecto
 
@@ -156,6 +159,9 @@ Créala solo si no existe (el repo ya trae una; respeta su formato):
   Una tarea de `fileops` sin test de undo no se marca `✅ Hecho`.
 - **Toda tarea con presupuesto de rendimiento se cierra con el número medido**, no con una
   impresión. El número va en el registro de avance.
+- **Nada que estime algo (BPM, tonalidad, tipo) se marca `✅ Hecho` sin su cifra de acierto
+  medida contra el conjunto de evaluación**, ni sin comprobar que se calla cuando la pregunta no
+  aplica: un kick no tiene tonalidad y un hi-hat no tiene tempo.
 - Antes de añadir una dependencia nueva (crate o paquete npm), justifícala en el plan de la fase.
 
 ---

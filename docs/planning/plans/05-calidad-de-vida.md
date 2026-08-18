@@ -24,13 +24,17 @@
 | 5.5 | Orden por nombre, duración, fecha, loudness y aleatorio | ✅ Hecho | Ruta, nombre, duración, tamaño, volumen y recientes (aleatorio no) |
 | 5.6 | Paleta de comandos `Ctrl+K` (todas las acciones, con sus teclas) | 🔒 | 1.16 |
 
-### Análisis musical
+### Análisis musical → **movido a la [Fase 8](08-clasificacion-automatica.md)**
+
+Cuatro filas de tabla no daban para lo que esto es. La Fase 8 lo desarrolla con su propio gate,
+sus objetivos de acierto numéricos y su conjunto de evaluación.
+
 | # | Tarea | Estado | Notas |
 |---|-------|--------|-------|
-| 5.7 | Detección de BPM por autocorrelación de la envolvente de energía | 🔒 | 2.5 |
-| 5.8 | Detección de tonalidad por chromagram + perfiles Krumhansl | 🔒 | 2.4 |
-| 5.9 | Columnas de BPM y tono, con filtro y orden | 🔒 | 5.7, 5.8 |
-| 5.10 | Clasificación gruesa por envolvente (one-shot vs loop vs cola larga) | 🔒 | 2.5 |
+| 5.7 | Detección de BPM por autocorrelación de la envolvente de energía | ➡️ Movida | 2.5 |
+| 5.8 | Detección de tonalidad por chromagram + perfiles Krumhansl | ➡️ Movida | 2.4 |
+| 5.9 | Columnas de BPM y tono, con filtro y orden | ➡️ Movida | 5.7, 5.8 |
+| 5.10 | Clasificación gruesa por envolvente (one-shot vs loop vs cola larga) | ➡️ Movida | 2.5 |
 
 ### Manipulación
 | # | Tarea | Estado | Notas |
@@ -79,7 +83,7 @@ se ordenan por BPM y cada mano tiene sus teclas.
 | Tarea | Por qué no está |
 |---|---|
 | 5.6 Paleta de comandos `Ctrl+K` | La pantalla de ayuda (`?`) ya resuelve el descubrimiento, que era el 90 % de su valor |
-| 5.7–5.10 BPM, tonalidad y clasificación | Es DSP de verdad (autocorrelación de envolvente, chromagram + perfiles Krumhansl). Merece su propia fase con sus propios tests contra material etiquetado a mano, no un apaño |
+| 5.7–5.10 BPM, tonalidad y clasificación | **Movidas a la [Fase 8](08-clasificacion-automatica.md)**, que ya está planificada con su gate y sus objetivos medibles |
 | 5.12 Renombrado por patrón | Depende de 5.11, que ya está; es media tarde de trabajo cuando haga falta |
 | 5.13 Etiquetas | El esquema (`tags`, `sample_tags`) y el FTS ya están listos; falta la interfaz |
 | 5.14 Comparar A/B | El motor ya sabe cambiar de sample sin clics: es sobre todo interfaz |

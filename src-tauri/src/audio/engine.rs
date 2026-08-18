@@ -57,6 +57,9 @@ struct Estado {
     sample_rate: AtomicU32,
     channels: AtomicU32,
     buffer_frames: AtomicU32,
+    /// Si el backend deja fijar el tamaño de buffer. Cuando no (WASAPI), `buffer_frames`
+    /// queda a 0 porque lo elige el sistema.
+    buffer_fijo: std::sync::atomic::AtomicBool,
     cache_bytes: AtomicU64,
     cache_limite: AtomicU64,
     cache_entradas: AtomicU64,
@@ -127,6 +130,7 @@ impl AudioHandle {
             sample_rate: e.sample_rate.load(Ordering::Relaxed) as i64,
             channels: e.channels.load(Ordering::Relaxed) as i64,
             buffer_frames: e.buffer_frames.load(Ordering::Relaxed) as i64,
+            buffer_fixed: e.buffer_fijo.load(Ordering::Relaxed),
             cache_bytes: e.cache_bytes.load(Ordering::Relaxed) as i64,
             cache_limit_bytes: e.cache_limite.load(Ordering::Relaxed) as i64,
             cache_entries: e.cache_entradas.load(Ordering::Relaxed) as i64,
@@ -244,28 +248,33 @@ fn preparar(estado: &Arc<Estado>) -> Result<Motor> {
         }
     };
 
-    let mut cfg: cpal::StreamConfig = soportada.into();
-    cfg.buffer_size = cpal::BufferSize::Fixed(BUFFER_FRAMES);
-
-    // Si el device rechaza el tamaño fijo se reintenta con el suyo, pero se avisa: en la
-    // Fase 0 el buffer por defecto costaba 42 ms de p95 frente a 2,6 ms con 256 frames.
-    let (stream, frames) = match device.build_output_stream(
-        &cfg,
-        callback,
-        |e| eprintln!("[audio] error del stream: {e}"),
-        None,
-    ) {
-        Ok(s) => (s, BUFFER_FRAMES),
-        Err(_) => {
-            eprintln!(
-                "[audio] el dispositivo no acepta un buffer fijo de {BUFFER_FRAMES} frames; \
-                 se usa el suyo y la latencia será peor"
-            );
-            return Err(AppError::Audio(format!(
-                "el dispositivo no acepta un buffer de {BUFFER_FRAMES} frames"
-            )));
+    // Se PREGUNTA antes de construir, en vez de intentarlo y reintentar: el callback solo se
+    // puede mover una vez, así que un reintento obligaría a rehacerlo entero.
+    //
+    // En ALSA el backend declara un rango y se puede fijar el buffer, que es de donde salen
+    // los 2,6 ms de la Fase 0. En WASAPI (Windows) cpal informa `Unknown` porque el modo
+    // compartido no deja elegir tamaño: allí se usa el del sistema, que ronda los 10 ms.
+    // Es peor que 2,6 ms pero perfectamente usable — y muy lejos de los 42 ms que costaba el
+    // buffer por defecto de ALSA, que era lo que había que evitar a toda costa.
+    let (buffer_size, frames, fijo) = match soportada.buffer_size() {
+        cpal::SupportedBufferSize::Range { min, max } => {
+            let n = BUFFER_FRAMES.clamp(*min, *max);
+            (cpal::BufferSize::Fixed(n), n, true)
         }
+        cpal::SupportedBufferSize::Unknown => (cpal::BufferSize::Default, 0, false),
     };
+
+    let mut cfg: cpal::StreamConfig = soportada.into();
+    cfg.buffer_size = buffer_size;
+
+    let stream = device
+        .build_output_stream(
+            &cfg,
+            callback,
+            |e| eprintln!("[audio] error del stream: {e}"),
+            None,
+        )
+        .map_err(|e| AppError::Audio(format!("no se pudo abrir el stream de salida: {e}")))?;
     stream
         .play()
         .map_err(|e| AppError::Audio(format!("no se pudo arrancar el stream: {e}")))?;
@@ -274,6 +283,10 @@ fn preparar(estado: &Arc<Estado>) -> Result<Motor> {
     estado.sample_rate.store(sample_rate, Ordering::Relaxed);
     estado.channels.store(canales as u32, Ordering::Relaxed);
     estado.buffer_frames.store(frames, Ordering::Relaxed);
+    estado.buffer_fijo.store(fijo, Ordering::Relaxed);
+    if !fijo {
+        eprintln!("[audio] este backend no deja fijar el tamaño de buffer; se usa el del sistema");
+    }
     estado
         .cache_limite
         .store(CACHE_BYTES as u64, Ordering::Relaxed);

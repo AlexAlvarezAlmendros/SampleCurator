@@ -65,6 +65,8 @@ src-tauri/
     ipc/                    comandos Tauri (capa fina, sin lógica)
     domain/                 tipos puros del dominio (sin deps externas)
     codec/                  decodificar · remuestrear · picos · sonoridad · hash
+    music/                  tipo de sample, BPM y tonalidad (Fase 8)
+    paths.rs                rutas relativas normalizadas con `/` en todos los sistemas
     audio/                  engine (hilo + cpal) · cache (LRU) · graph (tiempo real)
     scan/                   walker + indexado · analyzer (en segundo plano)
     db/                     rusqlite: migrations · queries · triage (journal)
@@ -80,12 +82,14 @@ docs/planning/              roadmap y planes por fase (ver skill samplecurator-p
 **Regla de dependencias — nunca romper:**
 
 ```
-ipc      → domain, db, codec, audio, scan, fileops
+ipc      → domain, db, codec, audio, scan, fileops, music
 audio    → domain, codec     (NO conoce db, NO conoce tauri)
-scan     → domain, db, codec
-fileops  → domain, db
+scan     → domain, db, codec, music
+fileops  → domain, db, paths
+music    → domain, codec     (NO conoce db, ni el sistema de archivos)
 db       → domain
 codec    → domain
+paths    → nada
 domain   → nada
 ```
 
@@ -210,6 +214,22 @@ La caché de audio decodificado es LRU con tope en bytes (por defecto 256 MB), y
 de los ±3 vecinos de la selección: cuando pulsas la flecha, el sample **ya está en RAM**.
 
 ---
+
+## Multiplataforma
+
+El objetivo es Linux y Windows con el mismo código. Tres sitios donde se separan, y cómo:
+
+- **Rutas.** El índice guarda siempre `kicks/snare.wav`, con barra hacia delante, también en
+  Windows (`crate::paths`). Para abrir el archivo da igual, pero hace que todo lo que compara
+  cadenas —podar, buscar, exportar, el `UNIQUE` de la tabla— funcione igual en los dos.
+- **Buffer de audio.** ALSA deja fijarlo (256 frames, 2,6 ms); WASAPI no, y allí manda el del
+  sistema. Se **pregunta** al backend antes de construir el stream, porque el callback solo se
+  puede mover una vez y un reintento obligaría a rehacerlo entero.
+- **Prioridad de hilos.** `nice(+10)` en Unix, `THREAD_PRIORITY_BELOW_NORMAL` en Windows. Misma
+  idea: el análisis puede esperar, el audio no.
+
+El CI ejecuta clippy y los tests del núcleo en los dos sistemas, porque la mitad de este código
+toca rutas, renombrados y prioridades, que es justo donde se separan.
 
 ## Seguridad de los datos del usuario — no negociable
 

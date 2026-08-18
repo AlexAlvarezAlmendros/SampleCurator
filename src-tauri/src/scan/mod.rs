@@ -72,10 +72,10 @@ pub fn escanear(
         if !crate::codec::es_audio(&ruta) {
             continue;
         }
-        let Ok(rel) = ruta.strip_prefix(raiz) else {
+        // Siempre con `/`, también en Windows: ver `crate::paths`.
+        let Some(rel_path) = crate::paths::relativa(raiz, &ruta) else {
             continue;
         };
-        let rel_path = rel.to_string_lossy().to_string();
         let (size, mtime) = match e.metadata() {
             Ok(m) => (
                 m.len() as i64,

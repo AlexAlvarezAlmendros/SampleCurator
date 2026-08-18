@@ -339,6 +339,9 @@ pub struct AudioInfo {
     pub channels: i64,
     #[ts(type = "number")]
     pub buffer_frames: i64,
+    /// `false` cuando el backend no deja elegir el tamaño de buffer (WASAPI en Windows):
+    /// entonces manda el del sistema y `buffer_frames` vale 0.
+    pub buffer_fixed: bool,
     #[ts(type = "number")]
     pub cache_bytes: i64,
     #[ts(type = "number")]

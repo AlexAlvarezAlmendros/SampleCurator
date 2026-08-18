@@ -3234,7 +3234,7 @@ dependencies = [
 
 [[package]]
 name = "samplecurator"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "blake3",
  "cpal",

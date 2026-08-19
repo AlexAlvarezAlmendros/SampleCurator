@@ -5,7 +5,13 @@ import { afterEach, vi } from "vitest";
 // Desmontar entre tests, explícitamente. Sin esto los árboles se acumulan en el DOM y las
 // consultas encuentran el mismo texto varias veces — con el orden por defecto casi nunca se
 // nota, y con `--sequence.shuffle` fallan a pares.
-afterEach(() => {
+//
+// Y antes de desmontar, dejar que terminen las promesas que la app lanzó y nadie esperaba
+// (efectos de arranque, refrescos en segundo plano). Si no, resuelven durante el test
+// SIGUIENTE y le pisan el estado: es el fallo intermitente clásico de este archivo, y solo
+// aparece con el orden barajado.
+afterEach(async () => {
+  await new Promise((r) => setTimeout(r, 0));
   cleanup();
 });
 

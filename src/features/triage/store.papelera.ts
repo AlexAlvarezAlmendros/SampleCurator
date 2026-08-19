@@ -7,7 +7,7 @@
  */
 import { create } from "zustand";
 import { useUiStore } from "../../app/uiStore";
-import type { TrashEntry } from "../../bindings";
+import type { Project, TrashEntry } from "../../bindings";
 import * as ipc from "../../lib/ipc";
 import { esAppError } from "../../lib/ipc";
 import { log } from "../../lib/log";
@@ -26,6 +26,16 @@ interface TrashState {
   escuchar: (entrada: TrashEntry) => void;
 }
 
+/** Espera a que el proyecto esté cargado, hasta 2 s. Devuelve null si no llega. */
+async function esperarProyecto(): Promise<Project | null> {
+  for (let i = 0; i < 40; i++) {
+    await new Promise((r) => setTimeout(r, 50));
+    const p = useTriageStore.getState().proyecto;
+    if (p) return p;
+  }
+  return null;
+}
+
 export const useTrashStore = create<TrashState>((set, get) => ({
   abierta: false,
   entradas: [],
@@ -41,8 +51,14 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   },
 
   async refrescar() {
-    const proyecto = useTriageStore.getState().proyecto;
-    if (!proyecto) return;
+    let proyecto = useTriageStore.getState().proyecto;
+    // El proyecto se carga al arrancar. Si abres la papelera antes de que llegue —con la
+    // tecla se puede—, esperarlo un momento es la diferencia entre ver tus archivos y ver
+    // una papelera vacía que no se rellena nunca.
+    if (!proyecto) {
+      proyecto = await esperarProyecto();
+      if (!proyecto) return;
+    }
     set({ cargando: true });
     try {
       set({ entradas: await ipc.listarPapelera(proyecto.id) });

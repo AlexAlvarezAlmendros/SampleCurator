@@ -206,3 +206,13 @@
 .sobre {
   color: var(--color-text-subtle);
 }
+
+/* La fila de la salida de audio lleva su botón de reconectar a la derecha; con hueco
+   suficiente el texto y el botón conviven, y si no, el botón baja de línea. */
+.filaAudio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  justify-content: space-between;
+}

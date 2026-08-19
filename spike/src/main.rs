@@ -75,6 +75,9 @@ fn main() -> Result<()> {
         "bench-decode" => {
             bench_decode(&args.lib()?, args.num("--files", 400))?;
         }
+        "devices" => {
+            listar_dispositivos()?;
+        }
         "probe" => {
             probe(args.num("--secs", 8), buffer(&args))?;
         }
@@ -782,4 +785,26 @@ fn bench_resample(lib: &Path, n: usize) -> Result<bool> {
     );
     println!("  nota: la app usará rubato (calidad); esto mide el suelo de coste. Ver tarea 3.7.");
     Ok(ok)
+}
+
+
+/// Qué dispositivos de salida ve cpal en esta máquina, y cuál es el que usaría por defecto.
+fn listar_dispositivos() -> Result<()> {
+    use cpal::traits::{DeviceTrait, HostTrait};
+    let host = cpal::default_host();
+    let por_defecto = host
+        .default_output_device()
+        .and_then(|d| d.name().ok())
+        .unwrap_or_else(|| "?".into());
+    println!("host: {:?}", cpal::default_host().id());
+    println!("por defecto: {por_defecto}\n");
+    for (i, d) in host.output_devices()?.enumerate() {
+        let nombre = d.name().unwrap_or_else(|_| "?".into());
+        let cfg = d
+            .default_output_config()
+            .map(|c| format!("{:?} Hz · {} ch · {:?}", c.sample_rate(), c.channels(), c.sample_format()))
+            .unwrap_or_else(|e| format!("(sin config: {e})"));
+        println!("  {i:>2}. {nombre:<44} {cfg}");
+    }
+    Ok(())
 }

@@ -29,6 +29,7 @@ export function SettingsPanel() {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [audio, setAudio] = useState<AudioInfo | null>(null);
   const [confirmando, setConfirmando] = useState<number | null>(null);
+  const [reconectando, setReconectando] = useState(false);
 
   useEffect(() => {
     ipc
@@ -41,6 +42,22 @@ export function SettingsPanel() {
       .catch(() => setAudio(null));
     void useTriageStore.getState().refrescarPapelera();
   }, []);
+
+  // La app reconecta sola cuando detecta que la salida dejó de responder. Esto es el botón
+  // de emergencia por si en algún sistema la detección no llega: reabre el dispositivo y
+  // vuelve a leer la información para que se vea el resultado.
+  async function reconectarAudio() {
+    setReconectando(true);
+    try {
+      await ipc.reconectarAudio();
+      await new Promise((r) => setTimeout(r, 400));
+      setAudio(await ipc.infoAudio());
+    } catch (e) {
+      log.warn("no se pudo reconectar el audio", e);
+    } finally {
+      setReconectando(false);
+    }
+  }
 
   return (
     <div
@@ -234,14 +251,33 @@ export function SettingsPanel() {
             <dd>{info?.version ?? "—"}</dd>
             <dt>Índice</dt>
             <dd className={styles.ruta}>{info?.dbPath ?? "—"}</dd>
-            <dt>Audio</dt>
-            <dd>
-              {audio === null
-                ? (info?.audioError ?? "no disponible")
-                : `${audio.sampleRate} Hz · ${audio.channels} canales · buffer ${
-                    audio.bufferFixed ? `${audio.bufferFrames} frames` : "del sistema"
-                  }`}
+            <dt>Salida de audio</dt>
+            <dd className={styles.filaAudio}>
+              <span>
+                {audio === null
+                  ? (info?.audioError ?? "no disponible")
+                  : `${audio.device} · ${audio.sampleRate} Hz · ${audio.channels} canales · buffer ${
+                      audio.bufferFixed ? `${audio.bufferFrames} frames` : "del sistema"
+                    }`}
+              </span>
+              <Boton
+                variante="normal"
+                onClick={() => void reconectarAudio()}
+                deshabilitado={reconectando}
+                titulo="Vuelve a abrir el dispositivo de salida. Úsalo si cambiaste de auriculares o altavoces y dejó de sonar."
+              >
+                {reconectando ? "Reconectando…" : "Reconectar"}
+              </Boton>
             </dd>
+            {audio !== null && audio.reconnections > 0 && (
+              <>
+                <dt>Reconexiones</dt>
+                <dd>
+                  {cifra(audio.reconnections)}
+                  <span className={styles.sobre}> desde que abriste la app</span>
+                </dd>
+              </>
+            )}
             {audio !== null && audio.shots > 0 && (
               <>
                 <dt>Latencia medida</dt>

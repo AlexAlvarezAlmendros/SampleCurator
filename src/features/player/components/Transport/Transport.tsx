@@ -21,18 +21,29 @@ export function Transport() {
   const renombrando = useUiStore((s) => s.renombrando);
   const [nombreNuevo, setNombreNuevo] = useState("");
   const campo = useRef<HTMLInputElement>(null);
+  /** Para qué sample se abrió el renombrado. Ver el efecto de abajo. */
+  const renombrandoId = useRef<number | null>(null);
 
   // El renombrado ocurre EN SU SITIO, en la barra de transporte: abrir un diálogo para
   // cambiar un nombre rompería el ritmo del triaje.
+  //
+  // El campo se rellena SOLO al abrir el renombrado o al cambiar de sample, nunca porque
+  // `fila` traiga un objeto nuevo. La lista se refresca por detrás (parches, prefetch, una
+  // página que vuelve a llegar) y cada refresco daba una `fila` distinta: el efecto se
+  // disparaba y te borraba lo que acababas de escribir.
   useEffect(() => {
-    if (renombrando && fila) {
-      setNombreNuevo(fila.filename);
-      requestAnimationFrame(() => {
-        campo.current?.focus();
-        const punto = fila.filename.lastIndexOf(".");
-        campo.current?.setSelectionRange(0, punto > 0 ? punto : fila.filename.length);
-      });
+    if (!renombrando) {
+      renombrandoId.current = null;
+      return;
     }
+    if (!fila || renombrandoId.current === fila.id) return;
+    renombrandoId.current = fila.id;
+    setNombreNuevo(fila.filename);
+    requestAnimationFrame(() => {
+      campo.current?.focus();
+      const punto = fila.filename.lastIndexOf(".");
+      campo.current?.setSelectionRange(0, punto > 0 ? punto : fila.filename.length);
+    });
   }, [renombrando, fila]);
 
   const confirmarNombre = async () => {

@@ -337,10 +337,12 @@ pub struct PlaybackStarted {
     pub looping: bool,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, export_to = "../../src/bindings.ts")]
 pub struct AudioInfo {
+    /// Nombre del dispositivo de salida en uso.
+    pub device: String,
     #[ts(type = "number")]
     pub sample_rate: i64,
     #[ts(type = "number")]
@@ -360,6 +362,10 @@ pub struct AudioInfo {
     pub latency_p95_ms: f64,
     #[ts(type = "number")]
     pub shots: i64,
+    /// Cuántas veces ha habido que volver a abrir el dispositivo (cascos, Bluetooth, cambio
+    /// de salida). Si sube sin que hayas tocado nada, algo va mal con el audio del sistema.
+    #[ts(type = "number")]
+    pub reconnections: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

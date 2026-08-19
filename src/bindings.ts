@@ -4,12 +4,21 @@ export type ActionKind = "move" | "copy" | "reject" | "rename" | "keep";
 
 export type AppInfo = { version: string, dbPath: string, audio: AudioInfo | null, audioError: string | null, };
 
-export type AudioInfo = { sampleRate: number, channels: number, bufferFrames: number, 
+export type AudioInfo = { 
+/**
+ * Nombre del dispositivo de salida en uso.
+ */
+device: string, sampleRate: number, channels: number, bufferFrames: number, 
 /**
  * `false` cuando el backend no deja elegir el tamaño de buffer (WASAPI en Windows):
  * entonces manda el del sistema y `buffer_frames` vale 0.
  */
-bufferFixed: boolean, cacheBytes: number, cacheLimitBytes: number, cacheEntries: number, latencyP50Ms: number, latencyP95Ms: number, shots: number, };
+bufferFixed: boolean, cacheBytes: number, cacheLimitBytes: number, cacheEntries: number, latencyP50Ms: number, latencyP95Ms: number, shots: number, 
+/**
+ * Cuántas veces ha habido que volver a abrir el dispositivo (cascos, Bluetooth, cambio
+ * de salida). Si sube sin que hayas tocado nada, algo va mal con el audio del sistema.
+ */
+reconnections: number, };
 
 export type Destination = { id: number, projectId: number, name: string, relPath: string, hotkey: string | null, color: string, sortOrder: number, count: number, };
 

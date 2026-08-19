@@ -74,6 +74,14 @@ pub async fn player_prefetch(estado: State<'_, Estado>, sample_ids: Vec<i64>) ->
     Ok(())
 }
 
+/// Vuelve a abrir el dispositivo de salida. La app lo hace sola cuando detecta que el stream
+/// ha dejado de latir; esto es la salida de emergencia por si en algún sistema no basta.
+#[tauri::command]
+pub async fn player_reconnect(estado: State<'_, Estado>) -> Result<()> {
+    estado.audio()?.reconectar();
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn player_info(estado: State<'_, Estado>) -> Result<AudioInfo> {
     Ok(estado.audio()?.info())

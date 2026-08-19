@@ -127,6 +127,7 @@ pub fn run() {
             ipc::player::player_set_loop,
             ipc::player::player_prefetch,
             ipc::player::player_info,
+            ipc::player::player_reconnect,
             ipc::triage::triage_projects,
             ipc::triage::triage_last_project,
             ipc::triage::triage_create_project,

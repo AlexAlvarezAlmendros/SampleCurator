@@ -152,6 +152,7 @@ export const bucle = (looping: boolean): Promise<void> => llamar("player_set_loo
 export const prefetch = (sampleIds: number[]): Promise<void> =>
   llamar("player_prefetch", { sampleIds });
 export const infoAudio = (): Promise<AudioInfo> => llamar("player_info");
+export const reconectarAudio = (): Promise<void> => llamar("player_reconnect");
 
 // ─────────────────────── etiquetas (Fase 8) ───────────────────────
 

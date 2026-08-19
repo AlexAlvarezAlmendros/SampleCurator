@@ -36,7 +36,8 @@ src-tauri/src/
 ├── domain/             tipos puros: Sample, Destination, Peaks, TriageAction…
 ├── ipc/                un archivo por área: library, player, triage, settings
 ├── audio/
-│   ├── engine.rs       hilo de control + stream cpal (se abre una vez)
+│   ├── engine.rs       hilo de control + stream cpal (se abre una vez, y se reabre
+│   │                   solo si cambia la salida del sistema o el stream muere)
 │   ├── graph.rs        mezcla, fade, ganancia, loop  ← código de tiempo real
 │   ├── decode.rs       symphonia → AudioBuffer (f32 intercalado)
 │   ├── cache.rs        LRU por bytes de buffers decodificados

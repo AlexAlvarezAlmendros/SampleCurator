@@ -148,6 +148,10 @@ Además:
 
 - El stream de salida se abre **una vez** al arrancar y **no se cierra nunca**. Abrir el device
   por sample costaría 50-200 ms — es el error clásico que hace que una app así se sienta lenta.
+- La única excepción: el hilo de control **vigila la salida cada 500 ms** y reabre el stream si
+  el sistema cambió de dispositivo por defecto, si el backend dio error o si el callback dejó de
+  latir. Sin eso, enchufar unos cascos deja la app muda hasta reiniciarla. La decisión vive en
+  `motivo_para_reconectar()`, que es pura y se prueba sin tarjeta de sonido.
 - Todo cambio de ganancia o parada aplica una rampa de 5-10 ms (fade) para no producir clics.
 - Cambiar de sample = fade-out de 5 ms del anterior + arranque inmediato del nuevo, sin esperar.
 

@@ -98,7 +98,9 @@ vi.mock("../lib/ipc", () => ({
   restaurarDePapelera: vi.fn(async () => 10),
   reescanear: vi.fn(async () => {}),
   quitarFuente: vi.fn(async () => {}),
+  reconectarAudio: vi.fn(async () => {}),
   infoAudio: vi.fn(async () => ({
+    device: "Altavoces",
     sampleRate: 44100,
     channels: 2,
     bufferFrames: 256,
@@ -109,6 +111,7 @@ vi.mock("../lib/ipc", () => ({
     latencyP50Ms: 1.4,
     latencyP95Ms: 2.6,
     shots: 120,
+    reconnections: 0,
   })),
   extraerEtiquetas: vi.fn(async () => ({
     processed: 3,
@@ -364,6 +367,20 @@ describe("App", () => {
 
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() => expect(screen.queryByText("Carpetas de samples")).toBeNull());
+  });
+
+  it("el botón de reconectar reabre la salida de audio", async () => {
+    render(<App />);
+    fireEvent.keyDown(window, { key: ",", ctrlKey: true });
+    await waitFor(() => expect(screen.getByText("Salida de audio")).toBeDefined());
+
+    // El dispositivo se ve: es la primera pista cuando alguien dice «no suena».
+    expect(screen.getByText(/Altavoces/)).toBeDefined();
+
+    fireEvent.click(screen.getByText("Reconectar"));
+    await waitFor(() => expect(ipc.reconectarAudio).toHaveBeenCalled());
+    // Y después vuelve a pedir la información, para que se vea el resultado.
+    await waitFor(() => expect(vi.mocked(ipc.infoAudio).mock.calls.length).toBeGreaterThan(1));
   });
 
   it("la densidad cambia el alto de fila de verdad", async () => {

@@ -56,6 +56,7 @@ control por un ring de basura, nunca se sueltan en el callback.
 |---|-------|--------|-------|
 | 3.18 | Test del grafo con host falso: fades correctos, sin discontinuidades > umbral | ✅ Hecho | Test del grafo con host falso + control negativo que demuestra que el detector funciona |
 | 3.19 | Test de la caché LRU: desalojo por bytes, aciertos en navegación secuencial | ✅ Hecho | 4 tests de la caché LRU |
+| 3.20 | Sobrevivir a un cambio de dispositivo de salida sin reiniciar la app | ✅ Hecho | Vigilancia cada 500 ms: cambio de salida por defecto, error del backend o latido parado → reabre el stream conservando ganancia y caché |
 | 3.20 | Bench de latencia automatizado que falla si p95 > 25 ms | ⏭️ Aplazada | El bench automatizado de latencia vive en `spike/`; falta portarlo a criterion. Pasa a la Fase 6 |
 
 ---
@@ -78,4 +79,5 @@ cabezal corriendo. Sin clics, sin cortes, sin esperas.
 | Fecha | Tarea | Notas |
 |-------|-------|-------|
 | 2026-08-18 | 3.1–3.19 | Motor completo. El grafo se testea sin tarjeta de sonido, con control negativo |
+| 2026-08-19 | 3.20 | Al cambiar de salida (cascos, Bluetooth, USB, HDMI) la app dejaba de sonar hasta reiniciarla. Ahora el hilo de control vigila cada 500 ms y reabre el dispositivo: 6 tests de la decisión + 2 contra dispositivo real. La causa principal no era un stream muerto sino un stream vivo apuntando al dispositivo viejo |
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -201,6 +201,7 @@ import { useLabelsStore } from "../features/labels/store";
 import { useLibraryStore } from "../features/library/store";
 import { useMetaStore } from "../features/meta/store";
 import { usePlayerStore } from "../features/player/store";
+import { useTriageStore } from "../features/triage/store";
 import { useTrashStore } from "../features/triage/store.papelera";
 import * as ipc from "../lib/ipc";
 import { App } from "./App";
@@ -278,6 +279,9 @@ describe("App", () => {
   it("F2 abre el renombrado en la propia barra de transporte, sin modal", async () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText("KICK_808.wav")).toBeDefined());
+    // El proyecto se carga aparte de la lista, y el renombrado lo necesita para saber a qué
+    // proyecto pertenece. Sin esperarlo, el test corre una carrera que a veces pierde.
+    await waitFor(() => expect(useTriageStore.getState().proyecto).not.toBeNull());
 
     fireEvent.keyDown(window, { key: "F2" });
     const campo = (await screen.findByLabelText("Nuevo nombre del archivo")) as HTMLInputElement;
@@ -286,6 +290,24 @@ describe("App", () => {
     fireEvent.change(campo, { target: { value: "KICK_grave.wav" } });
     fireEvent.keyDown(campo, { key: "Enter" });
     await waitFor(() => expect(ipc.renombrar).toHaveBeenCalledWith(10, "KICK_grave.wav", 1));
+  });
+
+  it("un refresco de la lista no borra lo que estás escribiendo al renombrar", async () => {
+    // La lista se refresca por detrás mientras tecleas. Antes, cada refresco daba una fila
+    // nueva y el campo volvía al nombre original: perdías lo escrito sin saber por qué.
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("KICK_808.wav")).toBeDefined());
+
+    fireEvent.keyDown(window, { key: "F2" });
+    const campo = (await screen.findByLabelText("Nuevo nombre del archivo")) as HTMLInputElement;
+    fireEvent.change(campo, { target: { value: "a medio escribir" } });
+
+    // Esto es lo que hace un refresco: la misma fila, objeto nuevo.
+    act(() => {
+      useLibraryStore.getState().parchear(10, { rating: 3 });
+    });
+
+    expect(campo.value).toBe("a medio escribir");
   });
 
   it("la tecla T cambia de tema tocando solo el atributo del documento", async () => {

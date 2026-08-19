@@ -9,6 +9,7 @@ import { log } from "../../../../lib/log";
 import { useLibraryStore } from "../../../library/store";
 import { usePlayerStore } from "../../../player/store";
 import { useTriageStore } from "../../../triage/store";
+import { useUpdaterStore } from "../../../updater/store";
 import styles from "./SettingsPanel.module.css";
 
 const DENSIDADES: Array<[Densidad, string]> = [
@@ -30,6 +31,8 @@ export function SettingsPanel() {
   const [audio, setAudio] = useState<AudioInfo | null>(null);
   const [confirmando, setConfirmando] = useState<number | null>(null);
   const [reconectando, setReconectando] = useState(false);
+  const novedad = useUpdaterStore((s) => s.info);
+  const buscandoVersion = useUpdaterStore((s) => s.estado === "buscando");
 
   useEffect(() => {
     ipc
@@ -248,7 +251,21 @@ export function SettingsPanel() {
           <h3>Información</h3>
           <dl className={styles.info}>
             <dt>Versión</dt>
-            <dd>{info?.version ?? "—"}</dd>
+            <dd className={styles.filaAudio}>
+              <span>
+                {info?.version ?? "—"}
+                {novedad && (
+                  <span className={styles.sobre}> · hay una {novedad.version} disponible</span>
+                )}
+              </span>
+              <Boton
+                onClick={() => void useUpdaterStore.getState().buscar()}
+                deshabilitado={buscandoVersion}
+                titulo="Comprobar si hay una versión nueva publicada"
+              >
+                {buscandoVersion ? "Comprobando…" : "Buscar actualizaciones"}
+              </Boton>
+            </dd>
             <dt>Índice</dt>
             <dd className={styles.ruta}>{info?.dbPath ?? "—"}</dd>
             <dt>Salida de audio</dt>

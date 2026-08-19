@@ -13,7 +13,7 @@
 | 4 | Triaje | ✅ Hecho | [04-triaje.md](plans/04-triaje.md) | **MVP usable**: 1…9 clasifica, X rechaza, Ctrl+Z deshace |
 | 5 | Calidad de vida | 🔄 Parcial | [05-calidad-de-vida.md](plans/05-calidad-de-vida.md) | Duplicados, filtros, renombrar, atajos configurables, BPM/tonalidad |
 | 6 | Rendimiento y pulido | ✅ Hecho | [06-rendimiento-pulido.md](plans/06-rendimiento-pulido.md) | Todos los presupuestos de `docs/PERFORMANCE.md` verdes |
-| 7 | Empaquetado | ✅ Hecho | [07-empaquetado.md](plans/07-empaquetado.md) | AppImage + .deb instalables, con actualizador |
+| 7 | Empaquetado | ✅ Hecho | [07-empaquetado.md](plans/07-empaquetado.md) | AppImage + .deb instalables, con actualizador firmado |
 | 8 | Clasificación automática | 🔄 Gate 8.0 | [08-clasificacion-automatica.md](plans/08-clasificacion-automatica.md) | Tipo, BPM y tonalidad **medidos** contra material real etiquetado (**GATE en 8.0**) |
 | 9 | Metadatos, valoración y papelera | ✅ Hecho | [09-metadatos-valoracion-papelera.md](plans/09-metadatos-valoracion-papelera.md) | Describir un sample y encontrarlo por eso; recuperar lo rechazado |
 

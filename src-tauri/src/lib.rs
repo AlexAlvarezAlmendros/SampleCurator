@@ -28,6 +28,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         // Al cerrar bien, las decisiones se vuelcan a <destino>/library.json. El índice se
         // puede reconstruir escaneando; lo que el usuario decidió, no.
         .on_window_event(|ventana, evento| {
@@ -128,6 +129,8 @@ pub fn run() {
             ipc::player::player_prefetch,
             ipc::player::player_info,
             ipc::player::player_reconnect,
+            ipc::updater::update_check,
+            ipc::updater::update_install,
             ipc::triage::triage_projects,
             ipc::triage::triage_last_project,
             ipc::triage::triage_create_project,

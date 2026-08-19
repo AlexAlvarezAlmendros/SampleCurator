@@ -5,6 +5,7 @@ import { Kbd } from "../../../../components/Kbd";
 import { cifra } from "../../../../lib/format";
 import { useMetaStore } from "../../../meta/store";
 import { useTriageStore } from "../../../triage/store";
+import { AvisoActualizacion } from "../../../updater/components/AvisoActualizacion";
 import { useLibraryStore } from "../../store";
 import styles from "./Sidebar.module.css";
 
@@ -330,6 +331,8 @@ export function Sidebar() {
           Analizando… quedan {cifra(progreso.pendingAnalysis)}
         </div>
       )}
+
+      <AvisoActualizacion />
 
       <button
         type="button"

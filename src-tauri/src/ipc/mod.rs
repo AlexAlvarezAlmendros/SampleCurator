@@ -9,6 +9,7 @@ pub mod meta;
 pub mod player;
 pub mod settings;
 pub mod triage;
+pub mod updater;
 
 use crate::audio::AudioHandle;
 use crate::db::Db;

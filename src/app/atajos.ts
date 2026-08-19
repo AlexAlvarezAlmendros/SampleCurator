@@ -10,6 +10,7 @@ import { useMetaStore } from "../features/meta/store";
 import { usePlayerStore } from "../features/player/store";
 import { useTriageStore } from "../features/triage/store";
 import { useTrashStore } from "../features/triage/store.papelera";
+import { useUpdaterStore } from "../features/updater/store";
 import * as ipc from "../lib/ipc";
 import type { Atajo } from "../lib/keymap";
 import { algunaTecla, digitoConAlt, esDigito1a9, tecla, teclaIgnorandoShift } from "../lib/keymap";
@@ -365,6 +366,18 @@ function atajosTriaje(): Atajo[] {
       grupo: "Biblioteca",
       test: tecla(",", { ctrl: true }),
       ejecutar: () => ui().setAjustes(true),
+    },
+    {
+      id: "actualizar",
+      etiqueta: "U",
+      descripcion: "Actualizar a la versión nueva, o comprobar si la hay",
+      grupo: "Biblioteca",
+      test: tecla("u"),
+      ejecutar: () => {
+        const u = useUpdaterStore.getState();
+        if (u.info) void u.instalar();
+        else void u.buscar();
+      },
     },
     {
       id: "tema",

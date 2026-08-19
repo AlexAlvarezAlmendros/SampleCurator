@@ -39,8 +39,8 @@
       "icons/icon.png"
     ],
     "category": "Music",
-    "shortDescription": "Triaje r\u00e1pido de librer\u00edas de samples",
-    "longDescription": "Recorre una carpeta de samples, esc\u00fachalos al instante y clasif\u00edcalos con una sola tecla.",
+    "shortDescription": "Triaje rápido de librerías de samples",
+    "longDescription": "Recorre una carpeta de samples, escúchalos al instante y clasifícalos con una sola tecla.",
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
@@ -49,6 +49,15 @@
         "installMode": "currentUser",
         "languages": ["Spanish", "English"]
       }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE0RTNFNTg5QjU1N0YwOUMKUldTYzhGZTFpZVhqRkJiNm96RGU4MzdYdDc0MmZweit6Ni9ZMkx5U3prOEFtSjVKT0NYeWdMTksK",
+      "endpoints": [
+        "https://github.com/AlexAlvarezAlmendros/SampleCurator/releases/latest/download/latest.json"
+      ]
     }
   }
 }

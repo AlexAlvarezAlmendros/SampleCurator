@@ -199,6 +199,36 @@ pub struct ScanProgress {
     pub done: bool,
 }
 
+// ─────────────────────────── actualizaciones ───────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct UpdateInfo {
+    /// Versión disponible, tal cual la publica la release.
+    pub version: String,
+    /// Versión que estás usando ahora.
+    pub current_version: String,
+    /// Notas de la release, si las trae.
+    pub notes: Option<String>,
+    /// `false` cuando esta instalación no puede reemplazarse a sí misma: en Linux el
+    /// actualizador solo sabe con AppImage, y si viniste del `.deb` manda el gestor de
+    /// paquetes. Entonces se avisa y se ofrece la descarga, pero no se instala.
+    pub can_install: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/bindings.ts")]
+pub struct UpdateProgress {
+    #[ts(type = "number")]
+    pub downloaded: i64,
+    /// 0 cuando el servidor no dice cuánto ocupa: entonces la barra va indeterminada.
+    #[ts(type = "number")]
+    pub total: i64,
+    pub done: bool,
+}
+
 // ─────────────────────────── triaje ───────────────────────────
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

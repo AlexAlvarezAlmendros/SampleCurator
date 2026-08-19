@@ -8,7 +8,7 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import type {
   AppInfo,
   AudioInfo,
@@ -30,9 +30,19 @@ import type {
   TriageMode,
   TriageResult,
   UndoResult,
+  UpdateInfo,
+  UpdateProgress,
 } from "../bindings";
 
-export type { LibraryQuery, SampleRow, ScanProgress, SortBy, StatusFilter } from "../bindings";
+export type {
+  LibraryQuery,
+  SampleRow,
+  ScanProgress,
+  SortBy,
+  StatusFilter,
+  UpdateInfo,
+  UpdateProgress,
+} from "../bindings";
 
 /** Error de la app tal y como lo emite Rust: `{ kind, message }`. */
 export interface AppError {
@@ -153,6 +163,24 @@ export const prefetch = (sampleIds: number[]): Promise<void> =>
   llamar("player_prefetch", { sampleIds });
 export const infoAudio = (): Promise<AudioInfo> => llamar("player_info");
 export const reconectarAudio = (): Promise<void> => llamar("player_reconnect");
+
+// ─────────────────────────── actualizaciones ───────────────────────────
+
+/** Abre una URL en el navegador del sistema. Se usa para la página de descargas. */
+export const abrirEnlace = (url: string): Promise<void> => openUrl(url);
+
+/** `null` cuando ya estás en la última versión. */
+export const buscarActualizacion = (): Promise<UpdateInfo | null> => llamar("update_check");
+
+/**
+ * Descarga e instala. Si va bien la app se reinicia sola, así que esta promesa normalmente
+ * no llega a resolverse: el proceso se va antes.
+ */
+export function instalarActualizacion(alProgresar: (p: UpdateProgress) => void): Promise<void> {
+  const canal = new Channel<UpdateProgress>();
+  canal.onmessage = alProgresar;
+  return llamar("update_install", { progreso: canal });
+}
 
 // ─────────────────────── etiquetas (Fase 8) ───────────────────────
 

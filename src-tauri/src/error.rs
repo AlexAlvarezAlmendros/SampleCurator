@@ -33,6 +33,9 @@ pub enum AppError {
 
     #[error("no hay nada que deshacer")]
     NothingToUndo,
+
+    #[error("no se pudo actualizar: {0}")]
+    Update(String),
 }
 
 impl AppError {
@@ -48,6 +51,7 @@ impl AppError {
             Self::Io(_) => "io",
             Self::Unsafe(_) => "unsafe",
             Self::NothingToUndo => "nothing_to_undo",
+            Self::Update(_) => "update",
         }
     }
 }

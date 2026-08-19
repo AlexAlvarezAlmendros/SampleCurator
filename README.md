@@ -52,6 +52,14 @@ Esta app mueve y aparta archivos de tu librería personal, así que:
 
 Descarga el paquete de tu sistema de la última release, o constrúyelo tú.
 
+**Se actualiza sola.** La app mira si hay versión nueva a los pocos segundos de arrancar y, si
+la hay, lo dice en un rincón de la barra lateral. Con `U` (o un clic) la descarga, la instala y
+se reinicia; los paquetes vienen firmados y la app verifica la firma antes de instalar nada.
+Nunca actualiza sin que se lo pidas.
+
+Excepción: si instalaste el `.deb` o el `.rpm`, manda el gestor de paquetes de tu sistema y la
+app solo avisa, con enlace a la descarga. Con el AppImage y en Windows se actualiza sola.
+
 **Linux** (`.deb` y `.AppImage`):
 
 ```bash
@@ -113,6 +121,20 @@ cargo test --manifest-path src-tauri/Cargo.toml           # núcleo Rust
 
 Tauri 2 (Rust) · React 19 + TypeScript · SQLite · `cpal` + `symphonia` para audio nativo.
 El núcleo hace todo el trabajo pesado; el WebView solo pinta.
+
+## Publicar una versión
+
+```bash
+scripts/publicar.sh 0.3.0
+```
+
+Sube el número en los tres sitios donde vive (`package.json`, `tauri.conf.json`, `Cargo.toml`),
+comitea, etiqueta y empuja.
+
+El workflow `release.yml` compila Linux y Windows, firma los paquetes con la clave del
+actualizador, publica la release con los binarios y sube el `latest.json` que las apps ya
+instaladas consultan. La clave privada vive en los secretos del repositorio; **si se pierde, las
+apps instaladas dejarán de aceptar actualizaciones** (la clave pública va compilada dentro).
 
 ## Licencia
 

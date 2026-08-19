@@ -13,6 +13,7 @@ import { DestinationsPanel } from "../features/triage/components/DestinationsPan
 import { TrashPanel } from "../features/triage/components/TrashPanel";
 import { useTriageStore } from "../features/triage/store";
 import { useTrashStore } from "../features/triage/store.papelera";
+import { useUpdaterStore } from "../features/updater/store";
 import * as ipc from "../lib/ipc";
 import { registrarKeymap } from "../lib/keymap";
 import { log } from "../lib/log";
@@ -116,6 +117,14 @@ export function App() {
         soltar = f;
       });
     return () => soltar?.();
+  }, []);
+
+  // ── ¿hay versión nueva? ──
+  // A los 6 s: el arranque ya ha terminado y el escaneo inicial va por su cuenta, así que la
+  // comprobación no compite con nada. Silenciosa: si falla, no es noticia para el usuario.
+  useEffect(() => {
+    const t = window.setTimeout(() => void useUpdaterStore.getState().buscar(true), 6000);
+    return () => window.clearTimeout(t);
   }, []);
 
   // ── el análisis en segundo plano refresca la lista al terminar ──

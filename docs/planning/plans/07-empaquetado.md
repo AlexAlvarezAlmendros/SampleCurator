@@ -19,7 +19,7 @@
 | 7.1 | `tauri.conf.json` de producción: identificador, iconos, categoría, permisos mínimos | ✅ Hecho | Identificador, iconos generados, categoría Music y CSP restrictiva |
 | 7.2 | Build de AppImage y `.deb` verificados en una Ubuntu limpia | ✅ Hecho | .deb 6,3 MB y AppImage 78 MB; el AppImage se ejecutó y vio los 50.000 samples |
 | 7.3 | Revisión de la lista de permisos de Tauri v2: solo los diálogos y rutas necesarios | ✅ Hecho | Solo `dialog:allow-open` y `opener:allow-reveal-item-in-dir`; el disco lo toca Rust |
-| 7.4 | Actualizador (`tauri-plugin-updater`) con firma, apuntando a las releases de GitHub | 🔒 | 7.2 |
+| 7.4 | Actualizador (`tauri-plugin-updater`) con firma, apuntando a las releases de GitHub | ✅ Hecho | Aviso en la barra lateral, tecla `U`, instalación con progreso y reinicio. Workflow `release.yml` que firma y publica `latest.json` al empujar una etiqueta |
 | 7.5 | Copia de seguridad automática de `library.json` junto a la carpeta destino | ✅ Hecho | library.json al cerrar y con Ctrl+E, con escritura atómica |
 | 7.6 | Primer arranque: crear rutas de datos, migrar y no fallar nunca en frío | ✅ Hecho | Verificado con la base borrada: crea, migra y arranca sin datos |
 | 7.7 | GitHub Actions: `clippy`, `cargo test`, `biome`, `typecheck`, `vitest` y build | ✅ Hecho | 3 jobs: frontend, núcleo Rust y paquetes. Incluye comprobar que bindings.ts está al día |
@@ -50,12 +50,20 @@ Un AppImage que se descarga, se ejecuta y funciona, sin instalar nada más.
 
 ---
 
-## Bloqueado a la espera de una decisión tuya
+## Cómo se publica una versión
 
-**7.4 · Actualizador automático.** `tauri-plugin-updater` necesita dos cosas que no puedo
-inventar: un **par de claves de firma** (la privada no debe salir de tus manos ni entrar en el
-repositorio) y un **endpoint de releases** al que apuntar. Cuando decidas si esto se publica en
-GitHub Releases y generes las claves con `pnpm tauri signer generate`, conectarlo es media hora.
+```bash
+git tag -a v0.3.0 -m "SampleCurator 0.3.0" && git push origin v0.3.0
+```
+
+`release.yml` compila Linux y Windows, **firma** los paquetes con la clave del actualizador,
+publica la release y sube el `latest.json` que la app consulta. La clave privada vive en los
+secretos del repositorio (`TAURI_SIGNING_PRIVATE_KEY`) y una copia local en
+`~/.samplecurator/updater.key`. **Si se pierde, nadie puede publicar actualizaciones que las
+apps ya instaladas acepten**: la pública va compilada dentro de cada binario.
+
+El `.deb` y el `.rpm` se firman también, pero la app no se actualiza sola desde ellos: reemplazar
+sus archivos por detrás dejaría al gestor de paquetes mintiendo. Ahí el aviso lleva a la descarga.
 
 **7.9 · Windows: compilado y empaquetado, pero sin ejecutar.** El CI compila el núcleo, pasa
 clippy, ejecuta los 110 tests y construye el `.msi` y el `.exe` en `windows-latest`. Eso cubre

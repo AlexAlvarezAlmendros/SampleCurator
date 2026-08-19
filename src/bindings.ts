@@ -144,3 +144,29 @@ export type TriageMode = "move" | "copy";
 export type TriageResult = { batchId: string, affected: Array<number>, destinationId: number | null, destinationCount: number | null, kind: ActionKind, };
 
 export type UndoResult = { batchId: string, restored: Array<number>, focusSampleId: number | null, kind: ActionKind, destinationId: number | null, destinationCount: number | null, };
+
+export type UpdateInfo = { 
+/**
+ * Versión disponible, tal cual la publica la release.
+ */
+version: string, 
+/**
+ * Versión que estás usando ahora.
+ */
+currentVersion: string, 
+/**
+ * Notas de la release, si las trae.
+ */
+notes: string | null, 
+/**
+ * `false` cuando esta instalación no puede reemplazarse a sí misma: en Linux el
+ * actualizador solo sabe con AppImage, y si viniste del `.deb` manda el gestor de
+ * paquetes. Entonces se avisa y se ofrece la descarga, pero no se instala.
+ */
+canInstall: boolean, };
+
+export type UpdateProgress = { downloaded: number, 
+/**
+ * 0 cuando el servidor no dice cuánto ocupa: entonces la barra va indeterminada.
+ */
+total: number, done: boolean, };

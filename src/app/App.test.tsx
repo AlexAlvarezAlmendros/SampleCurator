@@ -99,6 +99,9 @@ vi.mock("../lib/ipc", () => ({
   reescanear: vi.fn(async () => {}),
   quitarFuente: vi.fn(async () => {}),
   reconectarAudio: vi.fn(async () => {}),
+  buscarActualizacion: vi.fn(async () => null),
+  instalarActualizacion: vi.fn(async () => {}),
+  abrirEnlace: vi.fn(async () => {}),
   infoAudio: vi.fn(async () => ({
     device: "Altavoces",
     sampleRate: 44100,
@@ -203,6 +206,7 @@ import { useMetaStore } from "../features/meta/store";
 import { usePlayerStore } from "../features/player/store";
 import { useTriageStore } from "../features/triage/store";
 import { useTrashStore } from "../features/triage/store.papelera";
+import { useUpdaterStore } from "../features/updater/store";
 import * as ipc from "../lib/ipc";
 import { App } from "./App";
 import { useUiStore } from "./uiStore";
@@ -219,6 +223,7 @@ const INICIALES = {
   meta: useMetaStore.getState(),
   player: usePlayerStore.getState(),
   trash: useTrashStore.getState(),
+  updater: useUpdaterStore.getState(),
 };
 
 describe("App", () => {
@@ -230,6 +235,7 @@ describe("App", () => {
     useMetaStore.setState(INICIALES.meta, true);
     usePlayerStore.setState(INICIALES.player, true);
     useTrashStore.setState(INICIALES.trash, true);
+    useUpdaterStore.setState(INICIALES.updater, true);
     document.documentElement.style.removeProperty("--row-height");
     document.documentElement.removeAttribute("data-theme");
     // `clearAllMocks` borra las llamadas pero NO las implementaciones puestas con
@@ -389,6 +395,44 @@ describe("App", () => {
 
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() => expect(screen.queryByText("Carpetas de samples")).toBeNull());
+  });
+
+  it("cuando hay versión nueva, el aviso aparece en la barra lateral y U la instala", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Carpetas")).toBeDefined());
+
+    // Como si la comprobación del arranque hubiera encontrado algo.
+    act(() => {
+      useUpdaterStore.setState({
+        info: {
+          version: "0.9.9",
+          currentVersion: "0.2.2",
+          notes: null,
+          canInstall: true,
+        },
+        estado: "disponible",
+      });
+    });
+
+    expect(screen.getByText("Versión 0.9.9 disponible")).toBeDefined();
+
+    // Con la tecla, sin ratón: el triaje se lleva con el teclado.
+    fireEvent.keyDown(window, { key: "u" });
+    await waitFor(() => expect(ipc.instalarActualizacion).toHaveBeenCalled());
+  });
+
+  it("el aviso de actualización se puede quitar de en medio", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Carpetas")).toBeDefined());
+    act(() => {
+      useUpdaterStore.setState({
+        info: { version: "0.9.9", currentVersion: "0.2.2", notes: null, canInstall: true },
+        estado: "disponible",
+      });
+    });
+
+    fireEvent.click(screen.getByLabelText("Ocultar el aviso de actualización"));
+    expect(screen.queryByText("Versión 0.9.9 disponible")).toBeNull();
   });
 
   it("el botón de reconectar reabre la salida de audio", async () => {

@@ -3439,12 +3439,13 @@ dependencies = [
 
 [[package]]
 name = "samplecurator"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "blake3",
  "cpal",
  "jwalk",
  "libc",
+ "minisign-verify",
  "rayon",
  "rtrb",
  "rusqlite",

@@ -40,10 +40,22 @@ Un AppImage que se descarga, se ejecuta y funciona, sin instalar nada más.
 
 ---
 
+## Verificación del actualizador (2026-08-19)
+
+El ciclo entero se probó contra la release real, no de memoria:
+
+| Qué | Cómo | Resultado |
+|---|---|---|
+| Se generan las firmas | `pnpm tauri build` con la clave | `.sig` para deb, rpm y AppImage |
+| El canal está bien montado | `cargo test --test actualizacion -- --ignored` | endpoint OK, entrada para la plataforma, y **la firma del paquete publicado casa con la clave pública que lleva la app** |
+| La app lo detecta | AppImage 0.2.2 empaquetado, 18 s de vida | «hay 0.2.3 disponible (tienes la 0.2.2)» |
+| Se instala y se reinicia | build 0.2.2 desechable que instala sin esperar la tecla | el AppImage se reemplazó a sí mismo y el resultado es **byte a byte** el 0.2.3 publicado (sha256 `eead8968…`) |
+
 ## Registro de avance
 
 | Fecha | Tarea | Notas |
 |-------|-------|-------|
+| 2026-08-19 | 7.4 | Actualizador con firma, aviso en la barra lateral y tecla `U`. Ciclo completo verificado contra la release 0.2.3 |
 | 2026-08-18 | 7.1–7.3, 7.5–7.8 | Empaquetado completo y verificado ejecutando el AppImage |
 | 2026-08-18 | 7.2 | El AppImage necesitaba `librsvg2-dev` para el plugin GTK de linuxdeploy; añadido a los requisitos del README y del CI |
 

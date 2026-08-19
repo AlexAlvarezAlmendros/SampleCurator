@@ -41,6 +41,14 @@ pub async fn update_check(app: AppHandle) -> Result<Option<UpdateInfo>> {
         .await
         .map_err(|e| AppError::Update(format!("no se pudo comprobar si hay versión nueva: {e}")))?;
 
+    match &encontrada {
+        Some(u) => eprintln!(
+            "[actualizador] hay {} disponible (tienes la {})",
+            u.version, u.current_version
+        ),
+        None => eprintln!("[actualizador] no hay versión nueva"),
+    }
+
     Ok(encontrada.map(|u| UpdateInfo {
         version: u.version.clone(),
         current_version: u.current_version.clone(),

@@ -47,10 +47,7 @@
       },
       "nsis": {
         "installMode": "currentUser",
-        "languages": [
-          "Spanish",
-          "English"
-        ]
+        "languages": ["Spanish", "English"]
       }
     },
     "createUpdaterArtifacts": true

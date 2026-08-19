@@ -28,17 +28,27 @@ if git rev-parse "v$version" >/dev/null 2>&1; then
 fi
 
 # Los tres sitios donde vive el número. Si se descuadran, el actualizador compara mal.
-python3 - "$version" <<'PY'
-import json, pathlib, re, sys
+#
+# Se toca SOLO la línea de la versión, con una sustitución quirúrgica. Releer y volcar el JSON
+# entero reformatea el resto del fichero y deja el CI en rojo por formato: pasó una vez.
+python3 - "$version" <<'FIN'
+import pathlib, re, sys
+
 v = sys.argv[1]
 for ruta in ("package.json", "src-tauri/tauri.conf.json"):
     p = pathlib.Path(ruta)
-    d = json.loads(p.read_text())
-    d["version"] = v
-    p.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+    texto, n = re.subn(r'("version":\s*)"[^"]+"', rf'\g<1>"{v}"', p.read_text(), count=1)
+    assert n == 1, f"no encontre la version en {ruta}"
+    p.write_text(texto)
+
 p = pathlib.Path("src-tauri/Cargo.toml")
-p.write_text(re.sub(r'^version = "[^"]+"', f'version = "{v}"', p.read_text(), count=1, flags=re.M))
-PY
+texto, n = re.subn(r'^version = "[^"]+"', f'version = "{v}"', p.read_text(), count=1, flags=re.M)
+assert n == 1, "no encontre la version en Cargo.toml"
+p.write_text(texto)
+FIN
+
+# Y se comprueba, en vez de confiar: el CI rechaza cualquier desajuste de formato.
+pnpm biome check package.json src-tauri/tauri.conf.json
 
 cargo update --manifest-path src-tauri/Cargo.toml -p samplecurator --quiet 2>/dev/null || true
 

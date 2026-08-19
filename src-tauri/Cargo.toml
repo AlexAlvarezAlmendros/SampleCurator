@@ -35,6 +35,10 @@ ts-rs = "12.0.1"
 
 [dev-dependencies]
 tempfile = "3.27.0"
+# Solo para la prueba del canal de actualización: verifica la firma de un paquete publicado
+# contra la clave pública que lleva la app. Es la misma librería que usa el actualizador por
+# dentro, y ya venía en el árbol de dependencias.
+minisign-verify = "0.2"
 
 # Perfil de release: lo que se distribuye. `panic = "abort"` queda FUERA a propósito: un
 # panic en un hilo secundario no debe llevarse la app entera, y además rompería
